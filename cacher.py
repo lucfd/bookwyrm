@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import helpers
 from difflib import get_close_matches
+import spell
 
 
 def display_spell(spell_name):
@@ -10,8 +11,13 @@ def display_spell(spell_name):
 
     helpers.search_spell(helpers.reformat(spell_name))
 
+def cache_spells(): # saves a list of all spell names to spells.txt
 
-def cache_spells():
+    spell_names = scrape_spell_names()
+    save_spells(spell_names)
+
+
+def scrape_spell_names(): # scrapes wikidot for a list of all spell names
     
     URL = "http://dnd5e.wikidot.com/spells"
     page = requests.get(URL)
@@ -19,33 +25,29 @@ def cache_spells():
     soup = BeautifulSoup(page.content, "html.parser")
     results = soup.find(id="page-content")
 
-    #print(soup.title.get_text())
-    #print(results.prettify())
-    #print(results.get_text())
 
-    #print(results.get_text())
-    #print(results.p)
-
-    newR = soup.find_all('td')
+    td_tags = soup.find_all('td')
 
     #print(newR[0]) # array of da guys
     spell_list = []
     
-    for x in newR:
+    for td_tag in td_tags:
     
-        spell_name = x.find_all('a')
+        anchor_tags = td_tag.find_all('a')
 
-        for y in spell_name:
-            
-            #print(y.get_text())
-            spell_list.append(y.get_text())
+        for spell_name in anchor_tags:
+            spell_list.append(spell_name.get_text())
        # print(x.get_text())
         # print("-------------------")
-		
+    return spell_list
+
+
+def save_spells(list): # save a list of all spell names
+
     with open('spells.txt', 'w') as f:
-    
-        for z in spell_list:
-            f.write(z)
+
+        for spell in list:
+            f.write(spell)
             f.write('\n')
 
 

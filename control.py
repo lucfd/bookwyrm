@@ -12,7 +12,6 @@ def display_spell(spell_name):
 
 
 def main():
-    print("Hello World!")
 
     user_input = input("Enter spell name: ")
 

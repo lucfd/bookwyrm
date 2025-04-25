@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+from spell import Spell
 
 def search_spell(spell_name):
 
@@ -20,8 +21,85 @@ def search_spell(spell_name):
 
     #print(newR[0]) # array of da guys
 
-    for x in newR:
-        print(x.get_text())
+
+
+    parse_to_json(newR, soup.title.get_text().split(' -')[0])
+    
+   # for x in newR:
+   #     print(x.get_text())
+
+    
+def parse_to_json(soup, name): # converts scraped html to json
+
+    spell_name = name
+    spell_school = None
+    spell_level = None
+    spell_duration = None
+    spell_cast_time = None
+    spell_cast_range = None
+    spell_components = []
+    spell_source = None
+    spell_description = None
+    spell_upcast = None
+    spell_lists = []
+
+    # for x in soup:
+
+    #     if(x.get_text().startswith('Source:')):
+    #         print('Source...')
+    #         spell_source = x.get_text().split(': ')[1]
+    #     elif(x.get_text().startswith('Casting Time:')):
+    #         print('Casting Time...')
+    #         spell_cast_time = x.get_text().split(': ')[1]
+    #     elif(x.get_text().startswith('Range:')):
+    #         print('Range...')
+    #         spell_cast_range = x.get_text().split(': ')[1]
+    #     elif(x.get_text().startswith('Components:')):
+    #         print('Components...')
+    #         temp_components = x.get_text()
+    #         print(temp_components)
+    #     elif(x.get_text().startswith('Duration:')):
+    #         spell_duration = x.get_text().split(': ')[1]
+    #     elif(x.get_text().startswith('At Higher Levels.')):
+    #         spell_upcast = x.get_text().split('At Higher Levels. ')[1]
+    #     elif(x.get_text().startswith('Spell Lists.')):
+    #         for class_name in x.get_text().split('Spell Lists. ')[1].split(', '):
+    #             spell_lists.append(class_name)
+    #     else:
+    #         spell_description = x.get_text()
+
+    #     print(x.get_text())
+    #     print('----')
+    # print(spell_name)
+
+    big_list = []
+    for x in soup:
+
+        for y in x.get_text().split('\n'):
+            big_list.append(y)
+
+    print(big_list)
+    #print(spell_components)
+        #print(x.get_text())
+  #  print(soup[1].get_text())
+    #print(spell_lists)
+    json_data = {
+    "name": spell_name,
+    "school": spell_school,
+    "level": spell_level,
+    "duration": spell_duration,
+    "cast_time": spell_cast_time,
+    "cast_range": spell_cast_range,
+    "components": spell_components,
+    "source": spell_source,
+    "description": spell_description,
+    "upcast": spell_upcast,
+    "spell_lists": spell_lists
+}
+    print("-------------")
+    spell = Spell.from_json(json_data)
+    spell.output() # Output: Fireball
+    print("$$$$$$$$$$$$$$$$")
 
 #print(soup.title.get_text())
 #print(soup.title.get_text())
