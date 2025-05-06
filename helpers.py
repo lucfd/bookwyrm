@@ -2,28 +2,17 @@ import requests
 from bs4 import BeautifulSoup
 from spell import Spell
 
+SPELL_SCHOOLS = ["Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Illusion", "Necromancy", "Transmutation"]
+SPELL_LEVELS = ["Cantrip", "1st-Level", "2nd-Level", "3rd-Level", "4th-Level", "5th-Level", "6th-Level", "7th-Level", "8th-Level", "9th-Level"]
+
 def search_spell(spell_name):
 
     URL = "http://dnd5e.wikidot.com/spell:"+spell_name[0]
     page = requests.get(URL)
 
     soup = BeautifulSoup(page.content, "html.parser")
-    results = soup.find(id="page-content")
-
-    #print(soup.title.get_text())
-    #print(results.prettify())
-    #print(results.get_text())
-
-    #print(results.get_text())
-    #print(results.p)
-
-    newR = soup.find_all('p')
-
-    #print(newR[0]) # array of da guys
-
-
-
-    parse_to_json(newR, soup.title.get_text().split(' -')[0])
+    
+    parse_to_json(soup, soup.title.get_text().split(' -')[0])
     
    # for x in newR:
    #     print(x.get_text())
@@ -43,37 +32,47 @@ def parse_to_json(soup, name): # converts scraped html to json
     spell_upcast = None
     spell_lists = []
 
-    # for x in soup:
+    spell_html = soup.find_all('p')
 
-    #     if(x.get_text().startswith('Source:')):
-    #         print('Source...')
-    #         spell_source = x.get_text().split(': ')[1]
-    #     elif(x.get_text().startswith('Casting Time:')):
-    #         print('Casting Time...')
-    #         spell_cast_time = x.get_text().split(': ')[1]
-    #     elif(x.get_text().startswith('Range:')):
-    #         print('Range...')
-    #         spell_cast_range = x.get_text().split(': ')[1]
-    #     elif(x.get_text().startswith('Components:')):
-    #         print('Components...')
-    #         temp_components = x.get_text()
-    #         print(temp_components)
-    #     elif(x.get_text().startswith('Duration:')):
-    #         spell_duration = x.get_text().split(': ')[1]
-    #     elif(x.get_text().startswith('At Higher Levels.')):
-    #         spell_upcast = x.get_text().split('At Higher Levels. ')[1]
-    #     elif(x.get_text().startswith('Spell Lists.')):
-    #         for class_name in x.get_text().split('Spell Lists. ')[1].split(', '):
-    #             spell_lists.append(class_name)
-    #     else:
-    #         spell_description = x.get_text()
+    for x in spell_html:
 
-    #     print(x.get_text())
-    #     print('----')
-    # print(spell_name)
+        print("$ "+x.get_text())
+
+        if(x.get_text().startswith('Source:')):
+            print('Source...')
+            spell_source = x.get_text().split(': ')[1]
+        elif(x.get_text().startswith('Casting Time:')):
+            print('Casting Time...')
+            spell_cast_time = x.get_text().split(': ')[1]
+        elif(x.get_text().startswith('Range:')):
+            print('Range...')
+            spell_cast_range = x.get_text().split(': ')[1]
+        elif(x.get_text().startswith('Components:')):
+            print('Components...')
+            temp_components = x.get_text()
+            print(temp_components)
+        elif(x.get_text().startswith('Duration:')):
+            spell_duration = x.get_text().split(': ')[1]
+        elif(x.get_text().startswith('At Higher Levels.')):
+            spell_upcast = x.get_text().split('At Higher Levels. ')[1]
+        elif(x.get_text().startswith('Spell Lists.')):
+            for class_name in x.get_text().split('Spell Lists. ')[1].split(', '):
+                spell_lists.append(class_name)
+        else:
+            spell_description = x.get_text()
+
+    # handling spell school and level
+    emphasis = soup.find("em")
+    spell_school = next(
+        (school for school in SPELL_SCHOOLS if emphasis.get_text() and school.lower() in emphasis.get_text().lower()),
+    None)
+    spell_level = next(
+        (level for level in SPELL_LEVELS if emphasis.get_text() and level.lower() in emphasis.get_text().lower()),
+    None)    
+
 
     big_list = []
-    for x in soup:
+    for x in spell_html:
 
         for y in x.get_text().split('\n'):
             big_list.append(y)
