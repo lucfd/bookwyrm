@@ -48,9 +48,7 @@ def parse_to_json(soup, name): # converts scraped html to json
             print('Range...')
             spell_cast_range = x.get_text().split(': ')[1]
         elif(x.get_text().startswith('Components:')):
-            print('Components...')
-            temp_components = x.get_text()
-            print(temp_components)
+            spell_components = x.get_text().split(': ')[1].split(', ')
         elif(x.get_text().startswith('Duration:')):
             spell_duration = x.get_text().split(': ')[1]
         elif(x.get_text().startswith('At Higher Levels.')):
