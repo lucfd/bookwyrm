@@ -41,6 +41,17 @@ class Spell:
             "spell_lists": self.spell_lists
         }
     
+    def get_component(self, component_type): # returns the component matching the type provided ("V", "S", "M"). returns None if not found
+        return(next((component for component in self.components if component.startswith(component_type)), None))  
+
+    def has_component(self, component_type): # returns True if spell has specified component type, False otherwise
+        
+        if self.get_component(component_type) is None:
+            return False
+        else:
+            return True
+
+
     @classmethod
     def from_json(cls, json_data):
         return cls(**json_data)

@@ -44,7 +44,7 @@ def parse_to_json(soup, name): # converts scraped html to json
                 casting_time, spell_range, components, duration = match.groups()
                 spell_cast_time = casting_time
                 spell_cast_range = spell_range
-                spell_components = components
+                spell_components = components.split(', ')
                 spell_duration = duration
             else: # handling for modern format (different <p> for each attribute)
                 spell_cast_time = x.get_text().split(': ')[1]
@@ -88,6 +88,7 @@ def parse_to_json(soup, name): # converts scraped html to json
     spell = Spell.from_json(json_data)
     spell.output()
 
+    return json_data
 
 
 def reformat(string):
