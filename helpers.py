@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from spell import Spell
+import re
 
 SPELL_SCHOOLS = ["Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Illusion", "Necromancy", "Transmutation"]
 SPELL_LEVELS = ["Cantrip", "1st-Level", "2nd-Level", "3rd-Level", "4th-Level", "5th-Level", "6th-Level", "7th-Level", "8th-Level", "9th-Level"]
@@ -14,9 +15,6 @@ def search_spell(spell_name):
     
     parse_to_json(soup, soup.title.get_text().split(' -')[0])
     
-   # for x in newR:
-   #     print(x.get_text())
-
     
 def parse_to_json(soup, name): # converts scraped html to json
 
@@ -42,8 +40,17 @@ def parse_to_json(soup, name): # converts scraped html to json
             print('Source...')
             spell_source = x.get_text().split(': ')[1]
         elif(x.get_text().startswith('Casting Time:')):
-            print('Casting Time...')
-            spell_cast_time = x.get_text().split(': ')[1]
+
+            pattern = r'Casting Time:\s*(.+?)\nRange:\s*(.+?)\nComponents:\s*(.+?)\nDuration:\s*(.+)'
+            match = re.search(pattern, x.get_text())
+            if match:
+                casting_time, spell_range, components, duration = match.groups()
+                spell_cast_time = casting_time
+                spell_cast_range = spell_range
+                spell_components = components
+                spell_duration = duration
+            else:
+                spell_cast_time = x.get_text().split(': ')[1]
         elif(x.get_text().startswith('Range:')):
             print('Range...')
             spell_cast_range = x.get_text().split(': ')[1]
