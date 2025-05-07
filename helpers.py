@@ -34,25 +34,21 @@ def parse_to_json(soup, name): # converts scraped html to json
 
     for x in spell_html:
 
-        print("$ "+x.get_text())
-
         if(x.get_text().startswith('Source:')):
             print('Source...')
             spell_source = x.get_text().split(': ')[1]
         elif(x.get_text().startswith('Casting Time:')):
-
             pattern = r'Casting Time:\s*(.+?)\nRange:\s*(.+?)\nComponents:\s*(.+?)\nDuration:\s*(.+)'
             match = re.search(pattern, x.get_text())
-            if match:
+            if match: # handling for legacy format (one <p> for four attributes)
                 casting_time, spell_range, components, duration = match.groups()
                 spell_cast_time = casting_time
                 spell_cast_range = spell_range
                 spell_components = components
                 spell_duration = duration
-            else:
+            else: # handling for modern format (different <p> for each attribute)
                 spell_cast_time = x.get_text().split(': ')[1]
         elif(x.get_text().startswith('Range:')):
-            print('Range...')
             spell_cast_range = x.get_text().split(': ')[1]
         elif(x.get_text().startswith('Components:')):
             spell_components = x.get_text().split(': ')[1].split(', ')
@@ -75,18 +71,6 @@ def parse_to_json(soup, name): # converts scraped html to json
         (level for level in SPELL_LEVELS if emphasis.get_text() and level.lower() in emphasis.get_text().lower()),
     None)    
 
-
-    big_list = []
-    for x in spell_html:
-
-        for y in x.get_text().split('\n'):
-            big_list.append(y)
-
-    print(big_list)
-    #print(spell_components)
-        #print(x.get_text())
-  #  print(soup[1].get_text())
-    #print(spell_lists)
     json_data = {
     "name": spell_name,
     "school": spell_school,
@@ -102,11 +86,9 @@ def parse_to_json(soup, name): # converts scraped html to json
 }
     print("-------------")
     spell = Spell.from_json(json_data)
-    spell.output() # Output: Fireball
-    print("$$$$$$$$$$$$$$$$")
+    spell.output()
 
-#print(soup.title.get_text())
-#print(soup.title.get_text())
+
 
 def reformat(string):
 
