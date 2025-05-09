@@ -2,7 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 import helpers
 from difflib import get_close_matches
-import spell
+import json
+from spell import Spell
 
 
 def display_spell(spell_name):
@@ -14,7 +15,9 @@ def display_spell(spell_name):
 def cache_spells(): # saves a list of all spell names to spells.txt
 
     spell_names = scrape_spell_names()
-    save_spells(spell_names)
+    save_spell_names(spell_names)
+
+
 
 
 def scrape_spell_names(): # scrapes wikidot for a list of all spell names
@@ -28,7 +31,6 @@ def scrape_spell_names(): # scrapes wikidot for a list of all spell names
 
     td_tags = soup.find_all('td')
 
-    #print(newR[0]) # array of da guys
     spell_list = []
     
     for td_tag in td_tags:
@@ -42,13 +44,52 @@ def scrape_spell_names(): # scrapes wikidot for a list of all spell names
     return spell_list
 
 
-def save_spells(list): # save a list of all spell names
+def save_spell_names(list): # save a list of all spell names
 
     with open('spells.txt', 'w') as f:
 
         for spell in list:
             f.write(spell)
             f.write('\n')
+
+
+        f.close()
+
+def initialize_spells(backup=True):
+
+    spell_list = None
+
+    if(backup==True):
+        print("BACKUP ON")
+    else:
+        print("BACKUP OFF")
+
+        spells = []
+
+        with open('spells.txt', 'r') as f:
+
+            spells = f.read()
+            
+        data_into_list = spells.split("\n")
+        data_into_list.remove('')
+        
+        for i, item in enumerate(data_into_list):
+        
+            data_into_list[i] = helpers.reformat(item)
+        
+        json_list = []
+        for i, x in enumerate(data_into_list):
+            json_list.append(helpers.search_spell(cache_search(helpers.reformat(data_into_list[i]))))
+
+        spell_list = json_list
+
+    return spell_list
+
+def save_spells(list): # save a
+
+    with open('spells.json', 'w') as f:
+
+        json.dump(list, f, indent=4)
 
 
         f.close()
@@ -73,10 +114,13 @@ def read_cache():
         #item = helpers.reformat(item)
     
     user_input = input("Enter spell name: ")
-    print('matched words:',get_close_matches(user_input, data_into_list, 1))
+    spell_found = get_close_matches(user_input, data_into_list, 1)
+    print('matched words:',spell_found)
+
+    return spell_found
     
     
-def cache_search(user_input):
+def cache_search(user_input): # searches spells.txt for input string, returns closest match
 
     spells = []
 
