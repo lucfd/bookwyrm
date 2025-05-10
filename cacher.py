@@ -6,18 +6,10 @@ import json
 from spell import Spell
 
 
-def display_spell(spell_name):
-
-    print("spell name: ",spell_name)
-
-    helpers.search_spell(helpers.reformat(spell_name))
-
 def cache_spells(): # saves a list of all spell names to spells.txt
 
     spell_names = scrape_spell_names()
     save_spell_names(spell_names)
-
-
 
 
 def scrape_spell_names(): # scrapes wikidot for a list of all spell names
@@ -55,17 +47,29 @@ def save_spell_names(list): # save a list of all spell names
 
         f.close()
 
-def initialize_spells(backup=True):
 
-    spell_list = None
+def initialize_spells(backup=True): # loads spell data into memory. backup=False will scrape wikidot, True pulls from spells.json
 
-    if(backup==True):
-        print("BACKUP ON")
-    else:
-        print("BACKUP OFF")
+    spell_list = []
+    # attempt to load spells from spells.json backup
+    if(backup):
+        try: 
+            with open('spells.json', 'r') as file:
+                spell_list = json.load(file)
+                return helpers.spellify_list(spell_list)
 
-        spells = []
+        except FileNotFoundError:
+            print("Failed to load spells.json - file could not be found.")
+        except Exception as e:
+            print("Failed to load spells.json")
+            print(f"Error: {e}")
+        
+        print("Trying to load data from the web...")
 
+    # attempt to scrape spells from wikidot
+    spells = []
+
+    try:
         with open('spells.txt', 'r') as f:
 
             spells = f.read()
@@ -79,19 +83,22 @@ def initialize_spells(backup=True):
         
         json_list = []
         for i, x in enumerate(data_into_list):
-            json_list.append(helpers.search_spell(cache_search(helpers.reformat(data_into_list[i]))))
+            json_list.append(helpers.scrape_spell(cache_search(helpers.reformat(data_into_list[i]))))
 
-        spell_list = json_list
+        return json_list
+    
+    except Exception as e:
+        print("Failed to load data from the web.")
+        print(f"Error: {e}")
 
-    return spell_list
+    return None
 
-def save_spells(list): # save a
+
+def save_spells(list): # save all spells to json
 
     with open('spells.json', 'w') as f:
 
         json.dump(list, f, indent=4)
-
-
         f.close()
         
         
