@@ -6,15 +6,37 @@ import re
 SPELL_SCHOOLS = ["Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Illusion", "Necromancy", "Transmutation"]
 SPELL_LEVELS = ["Cantrip", "1st-Level", "2nd-Level", "3rd-Level", "4th-Level", "5th-Level", "6th-Level", "7th-Level", "8th-Level", "9th-Level"]
 
-def search_spell(spell_name):
+
+# SCRAPING HELPERS
+
+def scrape_spell_json(spell_name): # scrape spell's info, returns as json
 
     URL = "http://dnd5e.wikidot.com/spell:"+spell_name[0]
     page = requests.get(URL)
 
     soup = BeautifulSoup(page.content, "html.parser")
     
-    parse_to_json(soup, soup.title.get_text().split(' -')[0])
-    
+    return parse_to_json(soup, soup.title.get_text().split(' -')[0])
+
+
+def scrape_spell(spell_name): # scrape spell's info, returns as Spell object
+
+    spell_json = scrape_spell_json(spell_name)
+
+    new_spell = Spell.from_json(spell_json)
+
+    return new_spell
+
+
+def spellify_list(list): # converts list of spell dicts to list of Spell objects
+
+    new_list = []
+
+    for item in list:
+        new_list.append(Spell.from_json(item))
+
+    return new_list
+
     
 def parse_to_json(soup, name): # converts scraped html to json
 
@@ -84,10 +106,7 @@ def parse_to_json(soup, name): # converts scraped html to json
     "upcast": spell_upcast,
     "spell_lists": spell_lists
 }
-    print("-------------")
-    spell = Spell.from_json(json_data)
-    spell.output()
-
+    
     return json_data
 
 
