@@ -5,6 +5,7 @@ from difflib import get_close_matches
 import json
 from spell import Spell
 from rich.progress import track
+from pathlib import Path
 
 def cache_spells(): # saves a list of all spell names to spells.txt
 
@@ -25,7 +26,7 @@ def scrape_spell_names(): # scrapes wikidot for a list of all spell names
 
     spell_list = []
     
-    for td_tag in td_tags:
+    for td_tag in track(td_tags, description="Building spell index...", total=len(td_tags)):
     
         anchor_tags = td_tag.find_all('a')
 
@@ -63,12 +64,19 @@ def initialize_spells(backup=True): # loads spell data into memory. backup=False
         except Exception as e:
             print("Failed to load spells.json")
             print(f"Error: {e}")
+
+    # check if spells.txt exists (important for first-time users)
+    file_path = Path('spells.txt')
+    if not file_path.is_file():
+        try:
+            cache_spells()
+        except Exception as e:
+            print("Failed to build spell index.")
+            print(f"Error: {e}")
+
+            return None
         
-        print("Trying to load data from the web...")
-
-    # attempt to scrape spells from wikidot
-    spells = []
-
+    # scrape spell information, parse to json, return list of spell jsons
     try:
         with open('spells.txt', 'r') as f:
 
@@ -82,8 +90,8 @@ def initialize_spells(backup=True): # loads spell data into memory. backup=False
         
         json_list = []
 
-        for i in track(enumerate(data_into_list), description="Scraping spells...", total=len(data_into_list)):
-            json_list.append(helpers.scrape_spell(cache_search(helpers.reformat(data_into_list[i]))))
+        for i, x in track(enumerate(data_into_list), description="Scraping spells from the web...", total=len(data_into_list)):
+            json_list.append(helpers.scrape_spell(cache_search(helpers.reformat(x))))
 
         return json_list
     
