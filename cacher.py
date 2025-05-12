@@ -93,6 +93,9 @@ def initialize_spells(backup=True): # loads spell data into memory. backup=False
         for i, x in track(enumerate(data_into_list), description="Scraping spells from the web...", total=len(data_into_list)):
             json_list.append(helpers.scrape_spell(cache_search(helpers.reformat(x))))
 
+        # remove bad data from list
+        helpers.clean_list(json_list)
+
         return json_list
     
     except Exception as e:

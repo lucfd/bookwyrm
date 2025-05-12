@@ -23,6 +23,9 @@ def scrape_spell(spell_name): # scrape spell's info, returns as Spell object
 
     spell_json = scrape_spell_json(spell_name)
 
+    if(spell_json is None):
+        return None
+
     new_spell = Spell.from_json(spell_json)
 
     return new_spell
@@ -116,6 +119,11 @@ def parse_to_json(soup, name): # converts scraped html to json
     "spell_lists": spell_lists
 }
     
+    # prune bad data
+    if None in (json_data.get("name"), json_data.get("school"), json_data.get("level")):
+        return None
+
+    
     return json_data
 
 
@@ -129,4 +137,10 @@ def reformat(string):
     new_string = new_string.replace(":","")
 
 
-    return(new_string)    
+    return(new_string)
+
+
+def clean_list(list):
+
+    list[:] = [item for item in list if item is not None]
+    return
