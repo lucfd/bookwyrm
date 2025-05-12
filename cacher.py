@@ -4,7 +4,7 @@ import helpers
 from difflib import get_close_matches
 import json
 from spell import Spell
-
+from rich.progress import track
 
 def cache_spells(): # saves a list of all spell names to spells.txt
 
@@ -78,11 +78,11 @@ def initialize_spells(backup=True): # loads spell data into memory. backup=False
         data_into_list.remove('')
         
         for i, item in enumerate(data_into_list):
-        
             data_into_list[i] = helpers.reformat(item)
         
         json_list = []
-        for i, x in enumerate(data_into_list):
+
+        for i in track(enumerate(data_into_list), description="Scraping spells...", total=len(data_into_list)):
             json_list.append(helpers.scrape_spell(cache_search(helpers.reformat(data_into_list[i]))))
 
         return json_list
