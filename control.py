@@ -12,7 +12,7 @@ def display_spell(spell):
     spell.output()
 
 
-def main(): # CLI parsing logic goes here, make new file for filtering. rename control.py to main.py
+def main(): # CLI parsing logic goes here
 
     console = Console()
 
@@ -32,6 +32,11 @@ def main(): # CLI parsing logic goes here, make new file for filtering. rename c
     if(spells == None):
         print("Aborting program.")
         return
+
+    # save spells to json if there is no backup
+    file_path = Path('spells.json')
+    if not file_path.is_file():
+        cacher.save_spells(helpers.jsonify_list(spells))
 
     user_input = input("Enter field name: ")
     user_input2 = input("Enter target: ")
