@@ -2,32 +2,30 @@ import requests
 from bs4 import BeautifulSoup
 import helpers
 import cacher
-
+import search
+from pathlib import Path
+from rich.console import Console
+from rich.panel import Panel
+from rich import box
 
 def display_spell(spell):
     spell.output()
 
 
-def filter_by_class(list, filter_class):
+def main(): # CLI parsing logic goes here, make new file for filtering. rename control.py to main.py
 
-    filtered_spells = [spell for spell in list if filter_class in [s.lower() for s in spell.spell_lists]]
+    console = Console()
 
-    [print(spell.name) for spell in filtered_spells]
-    
-    return filtered_spells
+    ascii_header = """
+    BBBBB   OOOOO   OOOOO  K   K   W   W   Y   Y  RRRRR   M   M
+    B   B  O     O O     O K  K    W W W    Y Y   R    R  MM MM
+    BBBBB  O     O O     O KKK     WW WW     Y    RRRRR   M M M
+    B   B  O     O O     O K  K    W W W     Y    R   R   M   M
+    BBBBB   OOOOO   OOOOO  K   K   W   W     Y    R    R  M   M
+    """
 
+    console.print(Panel(ascii_header, style="bold yellow on purple4", box=box.ROUNDED))
 
-def filter_by_school(list, filter_class):
-
-    filtered_spells = [spell for spell in list if filter_class in [s.lower() for s in spell.spell_lists]]
-
-    [print(spell.name) for spell in filtered_spells]
-    return filtered_spells
-
-
-def main():
-
-    print('------Bookwyrm------')
 
     spells = cacher.initialize_spells()
 
@@ -35,13 +33,12 @@ def main():
         print("Aborting program.")
         return
 
+    user_input = input("Enter field name: ")
+    user_input2 = input("Enter target: ")
 
+    filtered_spells = search.filter_spells(spells, user_input, user_input2)
 
-
-    user_input = input("Enter spell name: ")
-
-    filter_by_class(spells, user_input)
-
+    [print(spell.name) for spell in filtered_spells]
 
 if __name__ == "__main__":
     main()
