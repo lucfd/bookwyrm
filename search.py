@@ -10,6 +10,8 @@ def filter_spells(list, field, target): # generic filtering method
         filtered_spells = filter_by_class(list, target)
     elif(field.lower()=="school"):
         filtered_spells = filter_by_school(list, target)
+    elif(field.lower()=="component"):
+        filtered_spells = filter_by_component(list, target)
 
     return filtered_spells
 
@@ -28,3 +30,13 @@ def filter_by_school(list, filter_school): #  returns list of spells of a specif
     return filtered_spells
 
 
+def filter_by_component(list, filter_component, has_component=True):
+
+    filtered_spells = None
+
+    if has_component:
+        filtered_spells = [spell for spell in list if spell.has_component(filter_component.upper())]
+    else:
+        filtered_spells = [spell for spell in list if not spell.has_component(filter_component.upper())]
+
+    return filtered_spells
