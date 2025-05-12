@@ -37,6 +37,16 @@ def spellify_list(list): # converts list of spell dicts to list of Spell objects
 
     return new_list
 
+
+def jsonify_list(list):
+
+    new_list = []
+
+    for item in list:
+        new_list.append(item.to_json())
+
+    return new_list
+
     
 def parse_to_json(soup, name): # converts scraped html to json
 
@@ -57,7 +67,6 @@ def parse_to_json(soup, name): # converts scraped html to json
     for x in spell_html:
 
         if(x.get_text().startswith('Source:')):
-            print('Source...')
             spell_source = x.get_text().split(': ')[1]
         elif(x.get_text().startswith('Casting Time:')):
             pattern = r'Casting Time:\s*(.+?)\nRange:\s*(.+?)\nComponents:\s*(.+?)\nDuration:\s*(.+)'
