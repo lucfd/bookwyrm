@@ -57,24 +57,16 @@ class Spell:
             return True
         else:
             return False
+        
+    def level_to_int(self):
+        
+        if self.level == 'Cantrip':
+            return 0
+        elif self.level[0].isnumeric():
+            return int(self.level[0])
+
 
     @classmethod
     def from_json(cls, json_data):
         return cls(**json_data)
 
-# json_data = {
-#     "name": "Fireball",
-#     "school": "Evocation",
-#     "level": "3rd",
-#     "duration": "Instantaneous",
-#     "cast_time": "1 action",
-#     "cast_range": "150 feet",
-#     "components": ['V', 'S'],
-#     "source": 'PHB',
-#     "description": "A bright streak flashes from your pointing finger to a point you choose within range and then blossoms with a low roar into an explosion of flame.",
-#     "upcast": None,
-#     "spell_lists": ['Wizard', 'Sorcerer']
-# }
-
-#spell = Spell.from_json(json_data)
-#print(spell.output())  # Output: Fireball
