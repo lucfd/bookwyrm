@@ -1,19 +1,48 @@
 from spell import Spell
 import helpers
+import argparse
+import shlex
+
+def build_parser():
+    parser = argparse.ArgumentParser(description="Filter spells based on flags.")
+    parser.add_argument("-c",  "--class", nargs="+", help="Filter by spell class")
+    parser.add_argument("-s", "--school", nargs="+", help="Filter by spell school")
+    parser.add_argument("-l", "--level",  nargs="+", help="Filter by spell level")
+    parser.add_argument("-cmp", "--component", nargs="+", help="Filter by spell components")
+    parser.add_argument("-con", "--concentration", nargs="?", const=True, help="filter spells with concentration")   
+
+    return parser
 
 
-def filter_spells(list, field, target): # generic filtering method
+def parse_query(user_input):
 
-    filtered_spells = None
+    parser = build_parser()
+    args, unknown_args = parser.parse_known_args(shlex.split(user_input))
+    return vars(args)
 
-    if(field.lower()=="class"):
-        filtered_spells = filter_by_class(list, target)
-    elif(field.lower()=="school"):
-        filtered_spells = filter_by_school(list, target)
-    elif(field.lower()=="component"):
-        filtered_spells = filter_by_component(list, target)
-    elif(field.lower()=="conc"):
-        filtered_spells = filter_by_concentration(list)
+
+def filter_spells(list, search_filters): # generic filtering method
+
+    filtered_spells = list
+
+    class_filters = search_filters.get('class')
+    school_filter = search_filters.get('school')
+    component_filters = search_filters.get('component')
+    concentration_filter = search_filters.get('concentration')
+
+    if class_filters:
+        for arg in class_filters:
+            filtered_spells = filter_by_class(filtered_spells, arg)
+
+    if component_filters:
+        for arg in component_filters:
+            filtered_spells = filter_by_component(filtered_spells, arg) # TODO: ability to search for spells without a certain component
+
+    if school_filter:
+        filtered_spells = filter_by_school(filtered_spells, school_filter[0])
+
+    if concentration_filter:
+        filtered_spells = filter_by_concentration(filtered_spells, concentration_filter)
 
     return filtered_spells
 
@@ -44,13 +73,13 @@ def filter_by_component(list, filter_component, has_component=True):
     return filtered_spells
 
 
-def filter_by_concentration(list, invert=False):
+def filter_by_concentration(list, is_concentration=True):
 
     filtered_spells = None
 
-    if invert:
-        filtered_spells = [spell for spell in list if not spell.is_concentration()]
-    else:
+    if is_concentration:
         filtered_spells = [spell for spell in list if spell.is_concentration()]
+    else:
+        filtered_spells = [spell for spell in list if not spell.is_concentration()]
     
     return filtered_spells
