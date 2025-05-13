@@ -12,6 +12,8 @@ def filter_spells(list, field, target): # generic filtering method
         filtered_spells = filter_by_school(list, target)
     elif(field.lower()=="component"):
         filtered_spells = filter_by_component(list, target)
+    elif(field.lower()=="conc"):
+        filtered_spells = filter_by_concentration(list)
 
     return filtered_spells
 
@@ -25,7 +27,7 @@ def filter_by_class(list, filter_class): # returns list of spells belonging to a
 
 def filter_by_school(list, filter_school): #  returns list of spells of a specific school
 
-    filtered_spells = [spell for spell in list if spell.school.lower()==filter_school.lower()]
+    filtered_spells = [spell for spell in list if spell.school.lower() == filter_school.lower()]
     
     return filtered_spells
 
@@ -39,4 +41,16 @@ def filter_by_component(list, filter_component, has_component=True):
     else:
         filtered_spells = [spell for spell in list if not spell.has_component(filter_component.upper())]
 
+    return filtered_spells
+
+
+def filter_by_concentration(list, invert=False):
+
+    filtered_spells = None
+
+    if invert:
+        filtered_spells = [spell for spell in list if not spell.is_concentration()]
+    else:
+        filtered_spells = [spell for spell in list if spell.is_concentration()]
+    
     return filtered_spells

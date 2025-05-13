@@ -50,7 +50,13 @@ class Spell:
             return False
         else:
             return True
-
+        
+    def is_concentration(self):
+        
+        if 'Concentration' in self.duration:
+            return True
+        else:
+            return False
 
     @classmethod
     def from_json(cls, json_data):
