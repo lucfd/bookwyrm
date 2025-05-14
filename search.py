@@ -124,3 +124,20 @@ def parse_level_range(level_filter):
             print(f"ERROR: {ranges} Invalid spell range.")
 
     return levels
+
+
+def fetch_spell(list, name): # returns Spell object that matches a provided spell name
+    
+    spell_names = []
+
+    try:
+        for i, item in enumerate(list):
+            spell_names.append(list[i].name)
+
+        closest_spell = helpers.find_closest_spell(spell_names, name)
+
+        for spell in list:
+            if spell.name == closest_spell:
+                return spell
+    except:
+        return None
