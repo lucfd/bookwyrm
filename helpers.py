@@ -2,6 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 from spell import Spell
 import re
+from difflib import get_close_matches
+
 
 SPELL_SCHOOLS = ["Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Illusion", "Necromancy", "Transmutation"]
 SPELL_LEVELS = ["Cantrip", "1st-Level", "2nd-Level", "3rd-Level", "4th-Level", "5th-Level", "6th-Level", "7th-Level", "8th-Level", "9th-Level"]
@@ -144,3 +146,11 @@ def clean_list(list):
 
     list[:] = [item for item in list if item is not None]
     return
+
+
+def find_closest_spell(list, target): # finds closest matching spell name in a list of strings
+
+    try:
+        return get_close_matches(target, list, 1)[0]
+    except:
+        return None
