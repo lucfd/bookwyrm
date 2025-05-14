@@ -2,14 +2,15 @@ from spell import Spell
 import helpers
 import argparse
 import shlex
+import re
 
 def build_parser():
     parser = argparse.ArgumentParser(description="Filter spells based on flags.")
     parser.add_argument("-c",  "--class", nargs="+", help="Filter by spell class")
     parser.add_argument("-s", "--school", nargs="+", help="Filter by spell school")
     parser.add_argument("-l", "--level",  nargs="+", help="Filter by spell level")
-    parser.add_argument("-cmp", "--component", nargs="+", help="Filter by spell components")
-    parser.add_argument("-con", "--concentration", nargs="?", const=True, help="filter spells with concentration")   
+    parser.add_argument("-cmp", "--component", nargs="+", help="Filter by spell components. Valid inputs are the letters v s m")
+    parser.add_argument("-con", "--concentration", nargs="?", const=True, help="filter spells with concentration. -con false will exclude concentration spells.")   
 
     return parser
 
@@ -29,6 +30,7 @@ def filter_spells(list, search_filters): # generic filtering method
     school_filter = search_filters.get('school')
     component_filters = search_filters.get('component')
     concentration_filter = search_filters.get('concentration')
+    level_filter = search_filters.get('level')
 
     if class_filters:
         for arg in class_filters:
@@ -43,6 +45,10 @@ def filter_spells(list, search_filters): # generic filtering method
 
     if concentration_filter:
         filtered_spells = filter_by_concentration(filtered_spells, concentration_filter)
+
+    if level_filter:
+        
+        filtered_spells = filter_by_level(filtered_spells, level_filter)
 
     return filtered_spells
 
@@ -77,9 +83,44 @@ def filter_by_concentration(list, is_concentration=True):
 
     filtered_spells = None
 
-    if is_concentration:
+    if is_concentration == True:
         filtered_spells = [spell for spell in list if spell.is_concentration()]
     else:
         filtered_spells = [spell for spell in list if not spell.is_concentration()]
     
     return filtered_spells
+
+
+def filter_by_level(list, levels):
+
+    parsed_levels = parse_level_range(levels)
+
+    filtered_spells = [spell for spell in list if spell.level_to_int() in parsed_levels]
+
+    return filtered_spells
+
+
+def parse_level_range(level_filter):
+    
+    levels = []
+
+
+    for arg in level_filter:
+        if arg.isdigit():
+            levels.append(int(arg))
+        elif arg == 'Cantrip':
+            levels.append(0)
+
+        ranges = re.match(r"\d+\.\.\d+", arg) # handling for range notation (0..3)
+
+        try:
+            if ranges is not None:
+                nums = ranges.string.split('..')
+                range_start = int(nums[0])
+                range_end = int(nums[1])
+                for x in range(range_start, range_end):
+                    levels.append(int(x))
+        except Exception as e:
+            print(f"ERROR: {ranges} Invalid spell range.")
+
+    return levels
