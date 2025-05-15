@@ -1,5 +1,5 @@
-from spell import Spell
-import helpers
+from src.spell import Spell
+from src import helpers
 import argparse
 import shlex
 import re
@@ -132,7 +132,7 @@ def fetch_spell(list, name): # returns Spell object that matches a provided spel
 
     try:
         for i, item in enumerate(list):
-            spell_names.append(list[i].name)
+            spell_names.append(item.name)
 
         closest_spell = helpers.find_closest_spell(spell_names, name)
 

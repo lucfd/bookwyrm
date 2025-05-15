@@ -1,8 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
-import helpers
-import cacher
-import search
+from src import helpers
+from src import cacher
+from src import search
 from pathlib import Path
 from rich.console import Console
 from rich.panel import Panel

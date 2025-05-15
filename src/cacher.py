@@ -1,9 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
-import helpers
+from src import helpers
 from difflib import get_close_matches
 import json
-from spell import Spell
+from src.spell import Spell
 from rich.progress import track
 from pathlib import Path
 
@@ -90,8 +90,8 @@ def initialize_spells(backup=True): # loads spell data into memory. backup=False
         
         json_list = []
 
-        for i, x in track(enumerate(data_into_list), description="Scraping spells from the web...", total=len(data_into_list)):
-            json_list.append(helpers.scrape_spell(cache_search(helpers.reformat(x))))
+        for i, new_spell_info in track(enumerate(data_into_list), description="Scraping spells from the web...", total=len(data_into_list)):
+            json_list.append(helpers.scrape_spell(cache_search(helpers.reformat(new_spell_info))))
 
         # remove bad data from list
         helpers.clean_list(json_list)

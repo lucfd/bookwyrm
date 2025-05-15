@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from spell import Spell
+from src.spell import Spell
 import re
 from difflib import get_close_matches
 
