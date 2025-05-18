@@ -63,13 +63,29 @@ def parse_to_json(soup, name): # converts scraped html to json
     spell_cast_range = None
     spell_components = []
     spell_source = None
-    spell_description = None
+    spell_description = ""
     spell_upcast = None
     spell_lists = []
 
     spell_html = soup.find_all('p')
 
+    # handling spell school and level
+    emphasis = soup.find("em")
+    emphasis_text = emphasis.get_text() if emphasis else ""
+    emphasis_container = emphasis.find_parent("p") if emphasis else None
+
+    spell_school = next(
+        (school for school in SPELL_SCHOOLS if school.lower() in emphasis_text.lower()),
+    None)
+    spell_level = next(
+        (level for level in SPELL_LEVELS if level.lower() in emphasis_text.lower()),
+    None)
+
+
     for x in spell_html:
+
+        if x == emphasis_container: # prevents spell & school <p> tag from accidentally being appended to spell_description
+            continue
 
         if(x.get_text().startswith('Source:')):
             spell_source = x.get_text().split(': ')[1]
@@ -96,16 +112,8 @@ def parse_to_json(soup, name): # converts scraped html to json
             for class_name in x.get_text().split('Spell Lists. ')[1].split(', '):
                 spell_lists.append(class_name)
         else:
-            spell_description = x.get_text()
+            spell_description = spell_description + x.get_text() +"\n" # covers spells that break descriptions into multiple tags
 
-    # handling spell school and level
-    emphasis = soup.find("em")
-    spell_school = next(
-        (school for school in SPELL_SCHOOLS if emphasis.get_text() and school.lower() in emphasis.get_text().lower()),
-    None)
-    spell_level = next(
-        (level for level in SPELL_LEVELS if emphasis.get_text() and level.lower() in emphasis.get_text().lower()),
-    None)    
 
     json_data = {
     "name": spell_name,
