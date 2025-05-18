@@ -150,15 +150,25 @@ def reformat(string):
     return(new_string)
 
 
-def clean_list(list):
+def clean_list(spell_list): # removes invalid & duplicate items from a provided list
 
-    list[:] = [item for item in list if item is not None]
-    return
+    # remove invalid items
+    temp_list = [item for item in spell_list if isinstance(item, Spell)]
+
+    seen_spells = []
+    final_list = []
+    # remove duplicates
+    for spell in temp_list:
+        if(spell.name not in seen_spells):
+            seen_spells.append(spell.name)
+            final_list.append(spell)
+
+    return final_list
 
 
-def find_closest_spell(list, target): # finds closest matching spell name in a list of strings
+def find_closest_spell(spell_list, target): # finds closest matching spell name in a list of strings
 
     try:
-        return get_close_matches(target, list, 1)[0]
+        return get_close_matches(target, spell_list, 1)[0]
     except:
         return None
