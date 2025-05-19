@@ -30,10 +30,13 @@ async def on_ready():
         print("Failed to sync commands")
 
 
-@bot.tree.command(name="info")
+@bot.tree.command(name="info", description='Displays spell information')
 @app_commands.describe(spell_name = "Name of spell to look up")
+@app_commands.rename(spell_name="name")
 async def info(interaction: discord.Interaction, spell_name: str):
-    await send_spell_embed(interaction, search.fetch_spell(bot.spells, spell_name))
+    target_spell = search.fetch_spell(bot.spells, spell_name)
+    spell_embed = await send_spell_embed(interaction, target_spell)
+    await interaction.response.send_message(embed=spell_embed)
 
 
 async def send_spell_embed(message, spell):
@@ -45,22 +48,9 @@ async def send_spell_embed(message, spell):
     else: # levelled spell formatting
         spell_school_level = f"{spell.level.lower()} {spell.school.lower()}"
 
-    # format spell components
-    component_text = ''
-    if len(spell.components) != 0:
-        for index, spell_component in enumerate(spell.components):
-            component_text = component_text + spell_component
-
-            if index != len(spell.components) - 1:
-                component_text = component_text + ", "
-
-    # format spell lists
-    corresponding_spell_lists = ''
-    for index, class_name in enumerate(spell.spell_lists):
-        corresponding_spell_lists = corresponding_spell_lists + class_name
-        if index != len(spell.spell_lists) - 1:
-            corresponding_spell_lists = corresponding_spell_lists+", "
-
+    component_text = ", ".join(spell.components)
+    corresponding_spell_lists = ", ".join(spell.spell_lists)
+ 
     spell_embed = discord.Embed(
         title=spell.name,
         description=f"*{spell_school_level}*\n",
@@ -79,7 +69,7 @@ async def send_spell_embed(message, spell):
     spell_embed.add_field(name="🧙‍♂️ Spell Lists",value=corresponding_spell_lists, inline=False)
     spell_embed.set_footer(text=f"📜 Source: {spell.source}")
 
-    await message.channel.send(embed=spell_embed)
+    return spell_embed
 
 
 bot.run('TOKEN')
