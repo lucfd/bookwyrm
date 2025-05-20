@@ -43,7 +43,9 @@ async def spell(interaction: discord.Interaction, spell_name: str):
 @app_commands.rename(spell_class="class")
 async def search(interaction: discord.Interaction, spell_class: str = None, school: str = None, results: int = 10):
     await interaction.response.defer()
-    await send_paginated_embed(interaction, bot.spells, per_page=results)
+    search_query = format_query(target_class=spell_class, school=school)
+    filters = searcher.parse_query(search_query)
+    await send_paginated_embed(interaction, searcher.filter_spells(bot.spells, filters), per_page=results)
 
 
 async def send_spell_embed(message, spell):
@@ -78,6 +80,18 @@ async def send_spell_embed(message, spell):
 
     return spell_embed
 
+
+def format_query(target_class=None, school=None, level=None, components=None, con=None):
+    query_string = ""
+
+    if(target_class):
+        query_string+="-c "+target_class
+    if(school):
+        query_string+=" -s "+school
+    if(level):
+        query_string+=" -l "+level
+
+    return query_string
 
 # helpers for creating & formatting spell entries on the embed
 def combine_spell_and_school(spell):
