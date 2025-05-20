@@ -6,6 +6,14 @@ import src.helpers as helpers
 import src.search as searcher
 from pathlib import Path
 import asyncio
+from typing import Literal
+
+# autocomplete function for 'class' argument of /search
+async def spell_class_autocomplete(interaction: discord.Interaction, current_input: str):
+    return [
+        app_commands.Choice(name=cls, value=cls)
+        for cls in ["Artificer", "Bard", "Cleric", "Druid", "Paladin", "Ranger", "Sorcerer", "Warlock", "Wizard"] if current_input.lower() in cls.lower()
+    ]
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -39,11 +47,14 @@ async def spell(interaction: discord.Interaction, spell_name: str):
     await interaction.response.send_message(embed=spell_embed)
 
 @bot.tree.command(name="search", description='Lists spells that match your search criteria')
-@app_commands.describe(spell_class = "Filter for spells available to specific classes (separated by spaces)", school = "Filter for spells belonging to a specific school", results = "Number of spells displayed per page")
+@app_commands.describe(spell_class = "Filter for spells available to specific classes (separated by spaces)", school = "Filter for spells belonging to a specific school", level = "Filter based on spell levels", 
+    comps = "Filter by spell components (any combo of V, S, M)", results = "Number of spells displayed per page")
 @app_commands.rename(spell_class="class")
-async def search(interaction: discord.Interaction, spell_class: str = None, school: str = None, results: int = 10):
+@app_commands.autocomplete(spell_class=spell_class_autocomplete)
+async def search(interaction: discord.Interaction, spell_class: str= None, school: Literal["Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Illusion", "Necromancy", "Transmutation"] = None,
+    level: str = None, comps: str = None, results: int = 10):
     await interaction.response.defer()
-    search_query = format_query(target_class=spell_class, school=school)
+    search_query = format_query(target_class=spell_class, school=school, level=level, components=comps)
     filters = searcher.parse_query(search_query)
     await send_paginated_embed(interaction, searcher.filter_spells(bot.spells, filters), per_page=results)
 
@@ -94,7 +105,7 @@ def format_query(target_class=None, school=None, level=None, components=None, co
     return query_string
 
 # helpers for creating & formatting spell entries on the embed
-def combine_spell_and_school(spell):
+def combine_level_and_school(spell):
     if spell.level.lower() == "cantrip":
         return spell.school + " " + spell.level.lower()
     else:
@@ -109,7 +120,7 @@ def paginated_description(spell, desc_length=140):
 
 
 def add_paginated_spell(embed, spell):
-    embed.add_field(name=spell.name+" *("+combine_spell_and_school(spell)+")*", value="-# "+paginated_description(spell), inline=False)
+    embed.add_field(name=spell.name+" *("+combine_level_and_school(spell)+")*", value="-# "+paginated_description(spell), inline=False)
 
 
 async def send_paginated_embed(message, spells, page=0, per_page=10):
