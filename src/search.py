@@ -10,7 +10,7 @@ def build_parser():
     parser.add_argument("-s", "--school", nargs="+", help="Filter by spell school")
     parser.add_argument("-l", "--level",  nargs="+", help="Filter by spell level")
     parser.add_argument("-cmp", "--component", nargs="+", help="Filter by spell components. Valid inputs are the letters v s m")
-    parser.add_argument("-con", "--concentration", nargs="?", const=True, help="filter spells with concentration. -con false will exclude concentration spells.")   
+    parser.add_argument("-con", "--concentration", nargs="?", const=True, type=lambda input_str: input_str.lower() == "true", help="filter spells with concentration. -con false will exclude concentration spells.")   
 
     return parser
 
@@ -43,7 +43,7 @@ def filter_spells(list, search_filters): # generic filtering method
     if school_filter:
         filtered_spells = filter_by_school(filtered_spells, school_filter[0])
 
-    if concentration_filter:
+    if concentration_filter is not None: # concentration_filter is a bool
         filtered_spells = filter_by_concentration(filtered_spells, concentration_filter)
 
     if level_filter:
@@ -79,7 +79,7 @@ def filter_by_component(list, filter_component, has_component=True):
     return filtered_spells
 
 
-def filter_by_concentration(list, is_concentration=True):
+def filter_by_concentration(list, is_concentration = True):
 
     filtered_spells = None
 
