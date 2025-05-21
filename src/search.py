@@ -100,6 +100,20 @@ def filter_by_level(list, levels):
     return filtered_spells
 
 
+def filter_ua(list):
+
+    filtered_spells = [spell for spell in list if "(UA)" not in spell.name]
+
+    return filtered_spells
+
+
+def filter_hb(list):
+
+    filtered_spells = [spell for spell in list if "(HB)" not in spell.name]
+
+    return filtered_spells
+
+
 def parse_level_range(level_filter):
     
     levels = []
