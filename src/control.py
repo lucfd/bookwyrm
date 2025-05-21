@@ -9,7 +9,7 @@ from rich.panel import Panel
 from rich import box
 from rich.table import Table
 from rich.text import Text
-from rich.prompt import Prompt, IntPrompt
+from rich.prompt import Prompt
 
 def display_spell(spell):
         console = Console()
@@ -25,7 +25,11 @@ def display_spell(spell):
         spell_info.append(f"{spell.duration}\n", style="green")
 
         spell_info.append(f"Cast Time: ", style="bold magenta")
-        spell_info.append(f"{spell.cast_time}\n", style="magenta")
+        spell_info.append(f"{spell.cast_time}", style="magenta")
+        
+        if spell.is_ritual():
+            spell_info.append(f" (ritual)", style="italic magenta")
+        spell_info.append("\n")
 
         spell_info.append(f"Range: ", style="bold blue")
         spell_info.append(f"{spell.cast_range}\n", style="blue")
@@ -92,7 +96,7 @@ def display_menu():
 
     console.print(menu_table)
 
-    selected_option = Prompt.ask("[bold yellow]Please select an option[/]", choices=["1", "2", "3", "4", "5", "6"])
+    selected_option = Prompt.ask("[bold yellow]Please select an option[/]", choices=["1", "2", "3", "4", "5"])
 
     return selected_option
 
@@ -106,7 +110,6 @@ def display_help_menu():
     table.add_column("[orchid]Description[/]", style="sea_green2")
     table.add_column("[orchid]Example[/]", style="bold")
 
-    # Add rows
     table.add_row("-c, --class", 
                 "Filters for spells that belong to specified classes.", 
                 "[bold yellow]-c Bard Wizard[/] filters for spells available to both Bards and Wizards.")
@@ -127,6 +130,10 @@ def display_help_menu():
     table.add_row("-con, --concentration", 
                 "Filter spells with concentration.", 
                 "[bold yellow]-con[/] filters for concentration spells. [bold yellow]-con false[/] excludes them.")
+    
+    table.add_row("-r, --ritual", 
+                "Filter for spells with the ritual tag.", 
+                "[bold yellow]-r[/] filters for ritual spells. [bold yellow]-r false[/] excludes them.")
 
     console.print(table)
 

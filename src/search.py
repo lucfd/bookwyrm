@@ -11,6 +11,7 @@ def build_parser():
     parser.add_argument("-l", "--level",  nargs="+", help="Filter by spell level")
     parser.add_argument("-cmp", "--component", nargs="+", help="Filter by spell components. Valid inputs are the letters v s m")
     parser.add_argument("-con", "--concentration", nargs="?", const=True, type=lambda input_str: input_str.lower() == "true", help="filter spells with concentration. -con false will exclude concentration spells.")   
+    parser.add_argument("-r", "--ritual", nargs="?", const=True, type=lambda input_str: input_str.lower() == "true", help="filter spells with the ritual tag. -r false will exclude concentration spells.")
 
     return parser
 
@@ -31,6 +32,7 @@ def filter_spells(list, search_filters): # generic filtering method
     component_filters = search_filters.get('component')
     concentration_filter = search_filters.get('concentration')
     level_filter = search_filters.get('level')
+    ritual_filter = search_filters.get('ritual')
 
     if class_filters:
         for arg in class_filters:
@@ -46,8 +48,10 @@ def filter_spells(list, search_filters): # generic filtering method
     if concentration_filter is not None: # concentration_filter is a bool
         filtered_spells = filter_by_concentration(filtered_spells, concentration_filter)
 
+    if ritual_filter is not None: # ritual_filter is a bool
+        filtered_spells = filter_by_ritual(filtered_spells, ritual_filter)
+
     if level_filter:
-        
         filtered_spells = filter_by_level(filtered_spells, level_filter)
 
     return filtered_spells
@@ -100,6 +104,18 @@ def filter_by_level(list, levels):
     return filtered_spells
 
 
+def filter_by_ritual(list, is_ritual = True):
+
+    filtered_spells = None
+
+    if is_ritual == True:
+         filtered_spells = [spell for spell in list if spell.is_ritual()]
+    else:
+         filtered_spells = [spell for spell in list if not spell.is_ritual()]
+
+    return filtered_spells
+
+
 def filter_ua(list):
 
     filtered_spells = [spell for spell in list if "(UA)" not in spell.name]
@@ -117,7 +133,6 @@ def filter_hb(list):
 def parse_level_range(level_filter):
     
     levels = []
-
 
     for arg in level_filter:
         if arg.isdigit():

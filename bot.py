@@ -9,7 +9,7 @@ import asyncio
 from typing import Literal
 
 # reformats /search arguments into a format compatible with search.py's parser
-def format_query(target_class=None, school=None, level=None, components=None, con=None):
+def format_query(target_class=None, school=None, level=None, components=None, con=None, ritual=None):
     query_string = ""
 
     if(target_class):
@@ -22,6 +22,8 @@ def format_query(target_class=None, school=None, level=None, components=None, co
         query_string+=" -cmp "+components
     if con is not None: # con is a bool
         query_string+=" -con "+str(con)
+    if ritual is not None:
+        query_string+=" -r "+str(ritual)
 
     return query_string
 
@@ -59,6 +61,9 @@ async def send_spell_embed(message, spell):
         spell_school_level = f"{spell.school} {spell.level.lower()}"
     else: # levelled spell formatting
         spell_school_level = f"{spell.level.lower()} {spell.school.lower()}"
+
+    if spell.is_ritual():
+        spell_school_level += " (ritual)"
 
     component_text = ", ".join(spell.components)
     corresponding_spell_lists = ", ".join(spell.spell_lists)
@@ -162,13 +167,13 @@ async def spell(interaction: discord.Interaction, spell_name: str):
 
 @bot.tree.command(name="search", description='Lists spells that match your search criteria')
 @app_commands.describe(spell_class = "Filter for spells available to specific classes (separated by spaces)", school = "Filter for spells belonging to a specific school", level = "Filter based on spell levels (\"0-3\" includes spells from cantrips to level 3)", 
-    comps = "Filter by spell components (any combo of V, S, M)", con="True = only concentration spells, false = only non-concentration", results = "Number of spells displayed per page")
+    comps = "Filter by spell components (any combo of V, S, M)", con="True = only concentration spells, false = only non-concentration", ritual="True = spells with the ritual tag, false = spells without it", results = "Number of spells displayed per page")
 @app_commands.rename(spell_class="class")
 @app_commands.autocomplete(spell_class=spell_class_autocomplete)
 async def search(interaction: discord.Interaction, spell_class: str= None, school: Literal["Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Illusion", "Necromancy", "Transmutation"] = None,
-    level: str = None, comps: str = None, con: bool = None, results: int = 10):
+    level: str = None, comps: str = None, con: bool = None, ritual: bool = None, results: int = 10):
     await interaction.response.defer()
-    search_query = format_query(target_class=spell_class, school=school, level=level, components=comps, con=con)
+    search_query = format_query(target_class=spell_class, school=school, level=level, components=comps, con=con, ritual=ritual)
     filters = searcher.parse_query(search_query)
     await send_paginated_embed(interaction, searcher.filter_spells(bot.spells, filters), per_page=results)
 
