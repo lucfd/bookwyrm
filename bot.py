@@ -8,6 +8,19 @@ from pathlib import Path
 import asyncio
 from typing import Literal
 
+# reformats /search arguments into a format compatible with search.py's parser
+def format_query(target_class=None, school=None, level=None, components=None, con=None):
+    query_string = ""
+
+    if(target_class):
+        query_string+="-c "+target_class
+    if(school):
+        query_string+=" -s "+school
+    if(level):
+        query_string+=" -l "+level
+
+    return query_string
+
 # autocomplete function for 'class' argument of /search
 async def spell_class_autocomplete(interaction: discord.Interaction, current_input: str):
     return [
@@ -15,50 +28,25 @@ async def spell_class_autocomplete(interaction: discord.Interaction, current_inp
         for cls in ["Artificer", "Bard", "Cleric", "Druid", "Paladin", "Ranger", "Sorcerer", "Warlock", "Wizard"] if current_input.lower() in cls.lower()
     ]
 
-intents = discord.Intents.default()
-intents.message_content = True
-
-bot = commands.Bot(command_prefix="$", intents=intents)
-
-@bot.event
-async def on_ready():
-    print(f'Successfully logged in as {bot.user}')
-
-    bot.spells = cacher.initialize_spells()
-
-    if(bot.spells == None):
-        print("Failed to initialize spells")
+# formats a spell's level + school for /spell embeds
+def combine_level_and_school(spell):
+    if spell.level.lower() == "cantrip":
+        return spell.school + " " + spell.level.lower()
     else:
-        print(f'Successfully initialized {len(bot.spells)} spells')
-        
-    try:
-        synced = await bot.tree.sync()
-        print(f"Successfully synced {len(synced)} commands (may take a few minutes to update)")
-    except:
-        print("Failed to sync commands")
+        return spell.level + " " + spell.school.lower()
+    
+# truncates a spell's description to a provided length
+def paginated_description(spell, desc_length=140):
+    if len(spell.description)<desc_length:
+        return spell.description[:desc_length].replace("\n"," ")
+    else:
+        return spell.description[:desc_length].replace("\n"," ") + "..."
 
+# adds a spell entry field to a spell list embed (what /search returns)
+def add_paginated_spell(embed, spell):
+    embed.add_field(name=spell.name+" *("+combine_level_and_school(spell)+")*", value="-# "+paginated_description(spell), inline=False)
 
-@bot.tree.command(name="spell", description='Displays spell information')
-@app_commands.describe(spell_name = "Name of spell to display")
-@app_commands.rename(spell_name="name")
-async def spell(interaction: discord.Interaction, spell_name: str):
-    target_spell = searcher.fetch_spell(bot.spells, spell_name)
-    spell_embed = await send_spell_embed(interaction, target_spell)
-    await interaction.response.send_message(embed=spell_embed)
-
-@bot.tree.command(name="search", description='Lists spells that match your search criteria')
-@app_commands.describe(spell_class = "Filter for spells available to specific classes (separated by spaces)", school = "Filter for spells belonging to a specific school", level = "Filter based on spell levels", 
-    comps = "Filter by spell components (any combo of V, S, M)", results = "Number of spells displayed per page")
-@app_commands.rename(spell_class="class")
-@app_commands.autocomplete(spell_class=spell_class_autocomplete)
-async def search(interaction: discord.Interaction, spell_class: str= None, school: Literal["Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Illusion", "Necromancy", "Transmutation"] = None,
-    level: str = None, comps: str = None, results: int = 10):
-    await interaction.response.defer()
-    search_query = format_query(target_class=spell_class, school=school, level=level, components=comps)
-    filters = searcher.parse_query(search_query)
-    await send_paginated_embed(interaction, searcher.filter_spells(bot.spells, filters), per_page=results)
-
-
+# creates an embed card with a specified spell's details (for /spell)
 async def send_spell_embed(message, spell):
 
     # formatting spell school & level
@@ -91,38 +79,7 @@ async def send_spell_embed(message, spell):
 
     return spell_embed
 
-
-def format_query(target_class=None, school=None, level=None, components=None, con=None):
-    query_string = ""
-
-    if(target_class):
-        query_string+="-c "+target_class
-    if(school):
-        query_string+=" -s "+school
-    if(level):
-        query_string+=" -l "+level
-
-    return query_string
-
-# helpers for creating & formatting spell entries on the embed
-def combine_level_and_school(spell):
-    if spell.level.lower() == "cantrip":
-        return spell.school + " " + spell.level.lower()
-    else:
-        return spell.level + " " + spell.school.lower()
-
-
-def paginated_description(spell, desc_length=140):
-    if len(spell.description)<desc_length:
-        return spell.description[:desc_length].replace("\n"," ")
-    else:
-        return spell.description[:desc_length].replace("\n"," ") + "..."
-
-
-def add_paginated_spell(embed, spell):
-    embed.add_field(name=spell.name+" *("+combine_level_and_school(spell)+")*", value="-# "+paginated_description(spell), inline=False)
-
-
+# posts a spell list embed populated with a provided list of spells (for /search)
 async def send_paginated_embed(message, spells, page=0, per_page=10):
     page_embed = discord.Embed(title="📜 Spell List", color=discord.Color.green())
 
@@ -167,5 +124,48 @@ async def send_paginated_embed(message, spells, page=0, per_page=10):
 
         except asyncio.TimeoutError: # exit the loop after timeout (30 sec)
             break
+
+
+intents = discord.Intents.default()
+intents.message_content = True
+
+bot = commands.Bot(command_prefix="$", intents=intents)
+
+@bot.event
+async def on_ready():
+    print(f'Successfully logged in as {bot.user}')
+
+    bot.spells = cacher.initialize_spells()
+
+    if(bot.spells == None):
+        print("Failed to initialize spells")
+    else:
+        print(f'Successfully initialized {len(bot.spells)} spells')
+        
+    try:
+        synced = await bot.tree.sync()
+        print(f"Successfully synced {len(synced)} commands (may take a few minutes to update)")
+    except:
+        print("Failed to sync commands")
+
+@bot.tree.command(name="spell", description='Displays spell information')
+@app_commands.describe(spell_name = "Name of spell to display")
+@app_commands.rename(spell_name="name")
+async def spell(interaction: discord.Interaction, spell_name: str):
+    target_spell = searcher.fetch_spell(bot.spells, spell_name)
+    spell_embed = await send_spell_embed(interaction, target_spell)
+    await interaction.response.send_message(embed=spell_embed)
+
+@bot.tree.command(name="search", description='Lists spells that match your search criteria')
+@app_commands.describe(spell_class = "Filter for spells available to specific classes (separated by spaces)", school = "Filter for spells belonging to a specific school", level = "Filter based on spell levels", 
+    comps = "Filter by spell components (any combo of V, S, M)", results = "Number of spells displayed per page")
+@app_commands.rename(spell_class="class")
+@app_commands.autocomplete(spell_class=spell_class_autocomplete)
+async def search(interaction: discord.Interaction, spell_class: str= None, school: Literal["Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Illusion", "Necromancy", "Transmutation"] = None,
+    level: str = None, comps: str = None, results: int = 10):
+    await interaction.response.defer()
+    search_query = format_query(target_class=spell_class, school=school, level=level, components=comps)
+    filters = searcher.parse_query(search_query)
+    await send_paginated_embed(interaction, searcher.filter_spells(bot.spells, filters), per_page=results)
 
 bot.run('TOKEN')
