@@ -17,7 +17,11 @@ def format_query(target_class=None, school=None, level=None, components=None, co
     if(school):
         query_string+=" -s "+school
     if(level):
-        query_string+=" -l "+level
+        query_string+=" -l "+level.replace("-","..")
+    if(components):
+        query_string+=" -cmp "+components
+    if(con):
+        query_string+=" -con "+con
 
     return query_string
 
@@ -157,7 +161,7 @@ async def spell(interaction: discord.Interaction, spell_name: str):
     await interaction.response.send_message(embed=spell_embed)
 
 @bot.tree.command(name="search", description='Lists spells that match your search criteria')
-@app_commands.describe(spell_class = "Filter for spells available to specific classes (separated by spaces)", school = "Filter for spells belonging to a specific school", level = "Filter based on spell levels", 
+@app_commands.describe(spell_class = "Filter for spells available to specific classes (separated by spaces)", school = "Filter for spells belonging to a specific school", level = "Filter based on spell levels (\"0-3\" includes spells from cantrips to level 3)", 
     comps = "Filter by spell components (any combo of V, S, M)", results = "Number of spells displayed per page")
 @app_commands.rename(spell_class="class")
 @app_commands.autocomplete(spell_class=spell_class_autocomplete)
