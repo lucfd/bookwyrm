@@ -118,7 +118,7 @@ def parse_level_range(level_filter):
                 nums = ranges.string.split('..')
                 range_start = int(nums[0])
                 range_end = int(nums[1])
-                for x in range(range_start, range_end):
+                for x in range(range_start, range_end+1):
                     levels.append(int(x))
         except Exception as e:
             print(f"ERROR: {ranges} Invalid spell range.")
