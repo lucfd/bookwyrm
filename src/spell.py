@@ -1,6 +1,6 @@
 class Spell:
 
-    def __init__(self, name, school, level, duration, cast_time, cast_range, components, source, description, upcast, spell_lists):
+    def __init__(self, name, school, level, duration, cast_time, cast_range, components, source, description, upcast, spell_lists, ritual):
         self.name = name
         self.school = school
         self.level = level
@@ -12,6 +12,7 @@ class Spell:
         self.description = description
         self.upcast = upcast
         self.spell_lists = spell_lists
+        self.ritual = ritual
 
     def output(self):
         print(f"Name: {self.name}")
@@ -38,7 +39,8 @@ class Spell:
             "source": self.source,
             "description": self.description,
             "upcast": self.upcast,
-            "spell_lists": self.spell_lists
+            "spell_lists": self.spell_lists,
+            "ritual": self.ritual
         }
     
     def get_component(self, component_type): # returns the component matching the type provided ("V", "S", "M"). returns None if not found
@@ -65,6 +67,8 @@ class Spell:
         elif self.level[0].isnumeric():
             return int(self.level[0])
 
+    def is_ritual(self):
+        return self.ritual
 
     @classmethod
     def from_json(cls, json_data):

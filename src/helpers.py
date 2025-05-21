@@ -66,6 +66,7 @@ def parse_to_json(soup, name): # converts scraped html to json
     spell_description = ""
     spell_upcast = None
     spell_lists = []
+    is_ritual = False
 
     spell_html = soup.find_all('p')
 
@@ -81,6 +82,8 @@ def parse_to_json(soup, name): # converts scraped html to json
         (level for level in SPELL_LEVELS if level.lower() in emphasis_text.lower()),
     None)
 
+    if "ritual" in emphasis_text:
+        is_ritual = True
 
     for x in spell_html:
 
@@ -126,7 +129,8 @@ def parse_to_json(soup, name): # converts scraped html to json
     "source": spell_source,
     "description": spell_description,
     "upcast": spell_upcast,
-    "spell_lists": spell_lists
+    "spell_lists": spell_lists,
+    "ritual": is_ritual
 }
     
     # prune bad data
