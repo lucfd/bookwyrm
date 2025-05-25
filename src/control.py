@@ -188,7 +188,30 @@ def main():
             filtered_spells = search.filter_spells(spells, args)
             display_spell_table(filtered_spells)
         elif user_input == '3':  
-            console.print("[cyan2]STUB: Manual update not implementd yet.[/]")
+            new_spell_names = cacher.scrape_spell_names()
+
+            try:
+                with open('spells.txt', 'r') as f:
+
+                    old_spells = f.read().splitlines()
+                    new_spells = [spell_name for spell_name in new_spell_names if spell_name not in old_spells]
+
+            except:
+                console.log("[cyan2]Failed to read spells.txt[/]")
+
+            if not new_spells:
+                console.print("[cyan2]No new spells found.[/]")
+            else:
+                console.print(f"[cyan2]Found the following new spells: [/]\n[sky_blue1]"+", ".join(new_spells)+"[/]")
+                update_input = Prompt.ask("[bold yellow]Would you like to update your library?[/]")
+
+                if(update_input == 'y'):
+                    print(new_spells)
+                    cacher.save_spell_names(old_spells+new_spells)
+                    spells = cacher.initialize_spells()
+
+
+            
         elif user_input == '4':
             display_options_menu()
         elif user_input == '5':
