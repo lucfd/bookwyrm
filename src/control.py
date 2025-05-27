@@ -203,12 +203,17 @@ def main():
                 console.print("[cyan2]No new spells found.[/]")
             else:
                 console.print(f"[cyan2]Found the following new spells: [/]\n[sky_blue1]"+", ".join(new_spells)+"[/]")
-                update_input = Prompt.ask("[bold yellow]Would you like to update your library?[/]")
+                update_input = Prompt.ask("[bold yellow]Would you like to update your library?[/] [bold magenta][Y/N][/]")
 
-                if(update_input == 'y'):
-                    print(new_spells)
-                    cacher.save_spell_names(old_spells+new_spells)
-                    spells = cacher.initialize_spells()
+                if update_input.lower() in ['y', 'yes']:
+                    try:
+                        cacher.save_spell_names(old_spells+new_spells)
+                        spells = cacher.initialize_spells()
+                        console.print('[sea_green2]Spell library updated successfully.[/]')
+                    except:
+                        console.print('[orange_red1]Failed to download new spells.[/]')
+                else:
+                    console.print('[cyan2]Spell library will not be updated.[/]')
 
 
             
