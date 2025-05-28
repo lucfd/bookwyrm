@@ -144,6 +144,39 @@ def display_options_menu(): #TODO
     console.print("[cyan2]STUB: Options menu[/]")
 
 
+def update_library(): # add missing spells to spells.txt, then returns re-initialized list of spells
+    console = Console()
+    console.print("[cyan2]Searching for new spells...[/]")
+
+    try:
+        old_spells, new_spells = cacher.find_new_spells(return_old=True)
+    except FileNotFoundError:
+        console.print("[cyan2]Failed to read spells.txt[/]")
+        return None
+    except Exception:
+        console.print("[cyan2]Failed to check for updates.[/]")
+        return None
+    
+    if not new_spells:
+        console.print("[cyan2]No new spells found.[/]")
+    else:
+        console.print(f"[cyan2]Found the following new spells: [/]\n[sky_blue1]"+", ".join(new_spells)+"[/]")
+        update_input = Prompt.ask("[bold yellow]Would you like to update your library?[/] [bold magenta][Y/N][/]")
+
+        if update_input.lower() in ['y', 'yes']:
+            try:
+                cacher.save_spell_names(old_spells+new_spells)
+                updated_spells = cacher.initialize_spells()
+                console.print('[sea_green2]Spell library updated successfully.[/]')
+                return updated_spells
+            except:
+                console.print('[orange_red1]Failed to download new spells.[/]')
+        else:
+            console.print('[cyan2]Spell library will not be updated.[/]')
+
+    return None
+
+
 def main():
 
     console = Console()
@@ -175,50 +208,29 @@ def main():
     while(True): 
          
         user_input = display_menu()
-
+        # display spell information
         if user_input == '1':
             target_spell = Prompt.ask("[bold yellow]Enter spell name[/]")
             try:
                 display_spell(search.fetch_spell(spells, target_spell))
             except:
                 console.print("[orange_red1]Couldn\'t find that spell.[/]")
+        # spell search
         elif user_input == '2':
             display_help_menu()
             args = search.parse_query(Prompt.ask("[bold yellow]Enter your search query[/]"))
             filtered_spells = search.filter_spells(spells, args)
             display_spell_table(filtered_spells)
-        elif user_input == '3':  
-            new_spell_names = cacher.scrape_spell_names()
-
-            try:
-                with open('spells.txt', 'r') as f:
-
-                    old_spells = f.read().splitlines()
-                    new_spells = [spell_name for spell_name in new_spell_names if spell_name not in old_spells]
-
-            except:
-                console.log("[cyan2]Failed to read spells.txt[/]")
-
-            if not new_spells:
-                console.print("[cyan2]No new spells found.[/]")
-            else:
-                console.print(f"[cyan2]Found the following new spells: [/]\n[sky_blue1]"+", ".join(new_spells)+"[/]")
-                update_input = Prompt.ask("[bold yellow]Would you like to update your library?[/] [bold magenta][Y/N][/]")
-
-                if update_input.lower() in ['y', 'yes']:
-                    try:
-                        cacher.save_spell_names(old_spells+new_spells)
-                        spells = cacher.initialize_spells()
-                        console.print('[sea_green2]Spell library updated successfully.[/]')
-                    except:
-                        console.print('[orange_red1]Failed to download new spells.[/]')
-                else:
-                    console.print('[cyan2]Spell library will not be updated.[/]')
-
-
+        # check for updates
+        elif user_input == '3':
+            new_spells = update_library()
             
+            if new_spells:
+                spells = new_spells
+        # options menu
         elif user_input == '4':
             display_options_menu()
+        # terminate program
         elif user_input == '5':
             console.print("[orange_red1]Exiting program.[/]")
             return
