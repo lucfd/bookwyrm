@@ -32,8 +32,7 @@ def scrape_spell_names(): # scrapes wikidot for a list of all spell names
 
         for spell_name in anchor_tags:
             spell_list.append(spell_name.get_text())
-       # print(x.get_text())
-        # print("-------------------")
+
     return spell_list
 
 
@@ -44,7 +43,6 @@ def save_spell_names(list): # save a list of all spell names
         for spell in list:
             f.write(spell)
             f.write('\n')
-
 
         f.close()
 
@@ -146,21 +144,29 @@ def cache_search(user_input): # searches spells.txt for input string, returns cl
     with open('spells.txt', 'r') as f:
 
          spells = f.read()
-         
-    #print(spells)
+
     data_into_list = spells.split("\n")
     data_into_list.remove('')
-    #print(data_into_list)
     
     for i, item in enumerate(data_into_list):
-    
         data_into_list[i] = helpers.reformat(item)
-        #item = helpers.reformat(item)
         
     return get_close_matches(user_input, data_into_list, 1)
-    
-    
-    
+
+
+def find_new_spells(return_old=False): # returns a list of scraped spell names not found in spells.txt
+    new_spell_names = scrape_spell_names()
+
+    with open('spells.txt', 'r') as f:
+            old_spells = f.read().splitlines()
+            new_spells = [spell_name for spell_name in new_spell_names if spell_name not in old_spells]
+
+    if return_old: # return both old and new spells
+        return [old_spells, new_spells]
+    else:
+        return new_spells
+
+     
 def main():
 
     print("Caching...")
