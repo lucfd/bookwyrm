@@ -7,7 +7,7 @@ from src.spell import Spell
 from rich.progress import track
 from pathlib import Path
 
-def cache_spells(): # saves a list of all spell names to spells.txt
+def update_spells_txt(): # scrapes a list of all spell names, saves them to spells.txt
 
     spell_names = scrape_spell_names()
     save_spell_names(spell_names)
@@ -36,11 +36,11 @@ def scrape_spell_names(): # scrapes wikidot for a list of all spell names
     return spell_list
 
 
-def save_spell_names(list): # save a list of all spell names
+def save_spell_names(spell_list): # save a list of spell names to spells.txt
 
     with open('spells.txt', 'w') as f:
 
-        for spell in list:
+        for spell in spell_list:
             f.write(spell)
             f.write('\n')
 
@@ -67,7 +67,7 @@ def initialize_spells(backup=True): # loads spell data into memory. backup=False
     file_path = Path('spells.txt')
     if not file_path.is_file():
         try:
-            cache_spells()
+            update_spells_txt()
         except Exception as e:
             print("Failed to build spell index.")
             print(f"Error: {e}")
@@ -89,7 +89,7 @@ def initialize_spells(backup=True): # loads spell data into memory. backup=False
         json_list = []
 
         for i, new_spell_info in track(enumerate(data_into_list), description="Scraping spells from the web...", total=len(data_into_list)):
-            scraped_spell = helpers.scrape_spell(cache_search(helpers.reformat(new_spell_info)))
+            scraped_spell = helpers.scrape_spell(match_spell(helpers.reformat(new_spell_info)))
             json_list.append(scraped_spell)
 
         # remove bad data from list
@@ -104,40 +104,14 @@ def initialize_spells(backup=True): # loads spell data into memory. backup=False
     return None
 
 
-def save_spells(list): # save all spells to json
+def save_spells(spell_list): # save all spells to json
 
     with open('spells.json', 'w') as f:
-
-        json.dump(list, f, indent=4)
+        json.dump(spell_list, f, indent=4)
         f.close()
         
-        
-def read_cache():
-
-    spells = []
-
-    with open('spells.txt', 'r') as f:
-
-         spells = f.read()
-         
-    #print(spells)
-    data_into_list = spells.split("\n")
-    data_into_list.remove('')
-    #print(data_into_list)
     
-    for i, item in enumerate(data_into_list):
-    
-        data_into_list[i] = helpers.reformat(item)
-        #item = helpers.reformat(item)
-    
-    user_input = input("Enter spell name: ")
-    spell_found = get_close_matches(user_input, data_into_list, 1)
-    print('matched words:',spell_found)
-
-    return spell_found
-    
-    
-def cache_search(user_input): # searches spells.txt for input string, returns closest match
+def match_spell(user_input): # searches spells.txt for input string, returns closest match
 
     spells = []
 
@@ -165,15 +139,3 @@ def find_new_spells(return_old=False): # returns a list of scraped spell names n
         return [old_spells, new_spells]
     else:
         return new_spells
-
-     
-def main():
-
-    print("Caching...")
-
-    cache_spells()
-    read_cache()
-
-	
-if __name__ == "__main__":
-    main() 

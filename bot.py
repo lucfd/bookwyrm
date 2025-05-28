@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-import src.cacher as cacher
+import src.spell_manager as sm
 import src.helpers as helpers
 import src.search as searcher
 from pathlib import Path
@@ -144,7 +144,7 @@ bot = commands.Bot(command_prefix="$", intents=intents)
 async def on_ready():
     print(f'Successfully logged in as {bot.user}')
 
-    bot.spells = cacher.initialize_spells()
+    bot.spells = sm.initialize_spells()
 
     if(bot.spells == None):
         print("Failed to initialize spells")

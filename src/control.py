@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from src import helpers
-from src import cacher
+from src import spell_manager as sm
 from src import search
 from pathlib import Path
 from rich.console import Console
@@ -149,7 +149,7 @@ def update_library(): # add missing spells to spells.txt, then returns re-initia
     console.print("[cyan2]Searching for new spells...[/]")
 
     try:
-        old_spells, new_spells = cacher.find_new_spells(return_old=True)
+        old_spells, new_spells = sm.find_new_spells(return_old=True)
     except FileNotFoundError:
         console.print("[cyan2]Failed to read spells.txt[/]")
         return None
@@ -165,8 +165,8 @@ def update_library(): # add missing spells to spells.txt, then returns re-initia
 
         if update_input.lower() in ['y', 'yes']:
             try:
-                cacher.save_spell_names(old_spells+new_spells)
-                updated_spells = cacher.initialize_spells()
+                sm.save_spell_names(old_spells+new_spells)
+                updated_spells = sm.initialize_spells()
                 console.print('[sea_green2]Spell library updated successfully.[/]')
                 return updated_spells
             except:
@@ -192,7 +192,7 @@ def main():
     console.print(Panel(ascii_header, style="bold yellow on purple4", box=box.ROUNDED))
 
 
-    spells = cacher.initialize_spells()
+    spells = sm.initialize_spells()
 
     if(spells == None):
         console.print("[orange_red1] Failed to initialize spells. Aborting program.[/]")
@@ -201,7 +201,7 @@ def main():
     # save spells to json if there is no backup
     file_path = Path('spells.json')
     if not file_path.is_file():
-        cacher.save_spells(helpers.jsonify_list(spells))
+        sm.save_spells(helpers.jsonify_list(spells))
         console.print("[bold chartreuse1]spells.json successfully created.[/]")
 
     # main control loop
