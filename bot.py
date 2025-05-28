@@ -52,6 +52,21 @@ def paginated_description(spell, desc_length=140):
 def add_paginated_spell(embed, spell):
     embed.add_field(name=spell.name+" *("+combine_level_and_school(spell)+")*", value="-# "+paginated_description(spell), inline=False)
 
+# returns an embed colour based on a spell's school
+def get_school_colour(school_name):
+    colour_map = {
+        "Abjuration": discord.Color.blurple(),
+        "Conjuration": discord.Color.purple(),
+        "Divination": discord.Color.teal(),
+        "Enchantment": discord.Color.fuchsia(),
+        "Evocation": discord.Color.red(),
+        "Illusion": discord.Color.blue(),
+        "Necromancy": discord.Color.brand_green(),
+        "Transmutation": discord.Color.yellow()
+    }
+    return colour_map.get(school_name, discord.Color.blue())
+
+
 # creates an embed card with a specified spell's details (for /spell)
 async def send_spell_embed(message, spell):
 
@@ -71,7 +86,7 @@ async def send_spell_embed(message, spell):
     spell_embed = discord.Embed(
         title=spell.name,
         description=f"*{spell_school_level}*\n",
-        color=discord.Color.blue() # TODO maybe change this based on spell school?
+        color=get_school_colour(spell.school)
     )
 
     spell_embed.add_field(name="🕒 Duration", value=spell.duration, inline=False)
@@ -129,7 +144,10 @@ async def send_paginated_embed(message, spells, page=0, per_page=10):
             page_embed.set_footer(text=f"Page {page + 1} of {last_page_index + 1}")
 
             await sent_message.edit(embed=page_embed)
-            await sent_message.remove_reaction(reaction.emoji, user)
+            try:
+                await sent_message.remove_reaction(reaction.emoji, user)
+            except:
+                print("Failed to remove reaction. Does the bot have the Manage Messages permission?")
 
         except asyncio.TimeoutError: # exit the loop after timeout (30 sec)
             break
