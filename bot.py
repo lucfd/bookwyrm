@@ -52,6 +52,61 @@ def paginated_description(spell, desc_length=140):
 def add_paginated_spell(embed, spell):
     embed.add_field(name=spell.name+" *("+combine_level_and_school(spell)+")*", value="-# "+paginated_description(spell), inline=False)
 
+# returns an embed colour based on a spell's school
+def get_school_colour(school_name):
+    colour_map = {
+        "Abjuration": discord.Color.blurple(),
+        "Conjuration": discord.Color.purple(),
+        "Divination": discord.Color.teal(),
+        "Enchantment": discord.Color.fuchsia(),
+        "Evocation": discord.Color.red(),
+        "Illusion": discord.Color.blue(),
+        "Necromancy": discord.Color.brand_green(),
+        "Transmutation": discord.Color.yellow()
+    }
+
+    return colour_map.get(school_name, discord.Color.blue())
+
+
+def find_good_cutoff(text, max_length=1024): # trim a string to fit a character limit while avoiding awkward cutoff points
+    
+    # trim the string to the character limit
+    trimmed_text = text[:max_length]
+
+    # find a natural cutoff point closest to the end
+    last_period = trimmed_text.rfind(".")
+    last_space = trimmed_text.rfind(" ")
+
+    if last_period > 0:
+        cutoff_point = last_period
+        # if there's a space after the period, increment for a cleaner cutoff
+        if cutoff_point < max_length and text[cutoff_point+1] == ' ':
+            cutoff_point +=1
+
+    elif last_space > 0:
+        cutoff_point = last_space
+    
+    else:
+        cutoff_point = max_length-1
+
+    return text[:cutoff_point]
+
+
+def create_embed_desc(embed, remaining_description): # adds description fields to a spell embed. breaks long descriptions into smaller parts that dont exceed the character limit for fields
+
+    if len(remaining_description) < 1024: # base case: if the description fits, add the field and return
+        embed.add_field(name="",value=remaining_description[:1024], inline=False)
+        return
+
+    # otherwise, find the best cutoff point within the character limit and add it to the embed
+    desc_paragraph = find_good_cutoff(remaining_description)
+    embed.add_field(name="",value=remaining_description[:len(desc_paragraph)], inline=False)
+
+    # recursive call using the remainder of the description
+    create_embed_desc(embed,remaining_description[len(desc_paragraph):])
+
+    return
+
 # creates an embed card with a specified spell's details (for /spell)
 async def send_spell_embed(message, spell):
 
@@ -71,14 +126,14 @@ async def send_spell_embed(message, spell):
     spell_embed = discord.Embed(
         title=spell.name,
         description=f"*{spell_school_level}*\n",
-        color=discord.Color.blue() # TODO maybe change this based on spell school?
+        color=get_school_colour(spell.school)
     )
 
     spell_embed.add_field(name="🕒 Duration", value=spell.duration, inline=False)
     spell_embed.add_field(name="🪄 Cast Time", value=spell.cast_time, inline=False)
     spell_embed.add_field(name="💎 Components", value=component_text, inline=False)
     spell_embed.add_field(name="🎯 Range", value=spell.cast_range, inline=False)
-    spell_embed.add_field(name="",value=spell.description, inline=False)
+    create_embed_desc(spell_embed, spell.description)
 
     if spell.upcast is not None:
         spell_embed.add_field(name="🔮 Upcast", value=spell.upcast, inline=False)
@@ -129,7 +184,10 @@ async def send_paginated_embed(message, spells, page=0, per_page=10):
             page_embed.set_footer(text=f"Page {page + 1} of {last_page_index + 1}")
 
             await sent_message.edit(embed=page_embed)
-            await sent_message.remove_reaction(reaction.emoji, user)
+            try:
+                await sent_message.remove_reaction(reaction.emoji, user)
+            except:
+                print("Failed to remove reaction. Does the bot have the Manage Messages permission?")
 
         except asyncio.TimeoutError: # exit the loop after timeout (30 sec)
             break
@@ -153,7 +211,7 @@ async def on_ready():
         
     try:
         synced = await bot.tree.sync()
-        print(f"Successfully synced {len(synced)} commands (may take a few minutes to update)")
+        print(f"Successfully synced {[item.name for item in synced]} commands")
     except:
         print("Failed to sync commands")
 
@@ -162,8 +220,17 @@ async def on_ready():
 @app_commands.rename(spell_name="name")
 async def spell(interaction: discord.Interaction, spell_name: str):
     target_spell = searcher.fetch_spell(bot.spells, spell_name)
-    spell_embed = await send_spell_embed(interaction, target_spell)
-    await interaction.response.send_message(embed=spell_embed)
+    if not target_spell:
+        spell_names = [spell.name for spell in bot.spells]
+        weak_matches = helpers.find_closest_spell(spell_names, spell_name, num_results=3, similarity=0.4)
+        if not weak_matches:
+            await interaction.response.send_message(content="Couldn't find a spell with that name.", ephemeral=True)
+        else:
+            await interaction.response.send_message(content="Couldn't find a spell with that name. Maybe you meant one of these?\n"+", ".join(weak_matches), ephemeral=True)
+    else:
+        spell_embed = await send_spell_embed(interaction, target_spell)
+        await interaction.response.send_message(embed=spell_embed)
+
 
 @bot.tree.command(name="search", description='Lists spells that match your search criteria')
 @app_commands.describe(spell_class = "Filter for spells available to specific classes (separated by spaces)", school = "Filter for spells belonging to a specific school", level = "Filter based on spell levels (\"0-3\" includes spells from cantrips to level 3)", 
