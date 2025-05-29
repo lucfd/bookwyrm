@@ -68,6 +68,45 @@ def get_school_colour(school_name):
     return colour_map.get(school_name, discord.Color.blue())
 
 
+def find_good_cutoff(text, max_length=1024): # trim a string to fit a character limit while avoiding awkward cutoff points
+    
+    # trim the string to the character limit
+    trimmed_text = text[:max_length]
+
+    # find a natural cutoff point closest to the end
+    last_period = trimmed_text.rfind(".")
+    last_space = trimmed_text.rfind(" ")
+
+    if last_period > 0:
+        cutoff_point = last_period
+        # if there's a space after the period, increment for a cleaner cutoff
+        if cutoff_point < max_length and text[cutoff_point+1] == ' ':
+            cutoff_point +=1
+
+    elif last_space > 0:
+        cutoff_point = last_space
+    
+    else:
+        cutoff_point = max_length-1
+
+    return text[:cutoff_point]
+
+
+def create_embed_desc(embed, remaining_description): # adds description fields to a spell embed. breaks long descriptions into smaller parts that dont exceed the character limit for fields
+
+    if len(remaining_description) < 1024: # base case: if the description fits, add the field and return
+        embed.add_field(name="",value=remaining_description[:1024], inline=False)
+        return
+
+    # otherwise, find the best cutoff point within the character limit and add it to the embed
+    desc_paragraph = find_good_cutoff(remaining_description)
+    embed.add_field(name="",value=remaining_description[:len(desc_paragraph)], inline=False)
+
+    # recursive call using the remainder of the description
+    create_embed_desc(embed,remaining_description[len(desc_paragraph):])
+
+    return
+
 # creates an embed card with a specified spell's details (for /spell)
 async def send_spell_embed(message, spell):
 
@@ -94,7 +133,7 @@ async def send_spell_embed(message, spell):
     spell_embed.add_field(name="🪄 Cast Time", value=spell.cast_time, inline=False)
     spell_embed.add_field(name="💎 Components", value=component_text, inline=False)
     spell_embed.add_field(name="🎯 Range", value=spell.cast_range, inline=False)
-    spell_embed.add_field(name="",value=spell.description, inline=False)
+    create_embed_desc(spell_embed, spell.description)
 
     if spell.upcast is not None:
         spell_embed.add_field(name="🔮 Upcast", value=spell.upcast, inline=False)
@@ -172,7 +211,7 @@ async def on_ready():
         
     try:
         synced = await bot.tree.sync()
-        print(f"Successfully synced {len(synced)} commands (may take a few minutes to update)")
+        print(f"Successfully synced {[item.name for item in synced]} commands")
     except:
         print("Failed to sync commands")
 
