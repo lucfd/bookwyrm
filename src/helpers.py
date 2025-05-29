@@ -170,9 +170,10 @@ def clean_list(spell_list): # removes invalid & duplicate items from a provided 
     return final_list
 
 
-def find_closest_spell(spell_list, target): # finds closest matching spell name in a list of strings
+def find_closest_spell(spell_list, target, num_results = 1, similarity=0.6): # finds closest matching spell name in a list of strings
 
     try:
-        return get_close_matches(target, spell_list, 1)[0]
+        matches = get_close_matches(target, spell_list, n=num_results, cutoff=similarity)
+        return matches[0] if num_results==1 else matches
     except:
         return None

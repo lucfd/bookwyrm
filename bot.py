@@ -64,6 +64,7 @@ def get_school_colour(school_name):
         "Necromancy": discord.Color.brand_green(),
         "Transmutation": discord.Color.yellow()
     }
+
     return colour_map.get(school_name, discord.Color.blue())
 
 
@@ -180,8 +181,17 @@ async def on_ready():
 @app_commands.rename(spell_name="name")
 async def spell(interaction: discord.Interaction, spell_name: str):
     target_spell = searcher.fetch_spell(bot.spells, spell_name)
-    spell_embed = await send_spell_embed(interaction, target_spell)
-    await interaction.response.send_message(embed=spell_embed)
+    if not target_spell:
+        spell_names = [spell.name for spell in bot.spells]
+        weak_matches = helpers.find_closest_spell(spell_names, spell_name, num_results=3, similarity=0.4)
+        if not weak_matches:
+            await interaction.response.send_message(content="Couldn't find a spell with that name.", ephemeral=True)
+        else:
+            await interaction.response.send_message(content="Couldn't find a spell with that name. Maybe you meant one of these?\n"+", ".join(weak_matches), ephemeral=True)
+    else:
+        spell_embed = await send_spell_embed(interaction, target_spell)
+        await interaction.response.send_message(embed=spell_embed)
+
 
 @bot.tree.command(name="search", description='Lists spells that match your search criteria')
 @app_commands.describe(spell_class = "Filter for spells available to specific classes (separated by spaces)", school = "Filter for spells belonging to a specific school", level = "Filter based on spell levels (\"0-3\" includes spells from cantrips to level 3)", 
