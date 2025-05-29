@@ -17,8 +17,9 @@ def scrape_spell_json(spell_name): # scrape spell's info, returns as json
     page = requests.get(URL)
 
     soup = BeautifulSoup(page.content, "html.parser")
-    
-    return parse_to_json(soup, soup.title.get_text().split(' -')[0])
+    results = soup.find(id="page-content")
+
+    return parse_to_json(results, soup.title.get_text().split(' -')[0])
 
 
 def scrape_spell(spell_name): # scrape spell's info, returns as Spell object
@@ -68,7 +69,7 @@ def parse_to_json(soup, name): # converts scraped html to json
     spell_lists = []
     is_ritual = False
 
-    spell_html = soup.find_all('p')
+    spell_html = soup.find_all(['p','ul'])
 
     # handling spell school and level
     emphasis = soup.find("em")
