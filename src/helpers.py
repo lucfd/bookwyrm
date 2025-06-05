@@ -3,11 +3,30 @@ from bs4 import BeautifulSoup
 from src.spell import Spell
 import re
 from difflib import get_close_matches
+import json
 
 
 SPELL_SCHOOLS = ["Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Illusion", "Necromancy", "Transmutation"]
 SPELL_LEVELS = ["Cantrip", "1st-Level", "2nd-Level", "3rd-Level", "4th-Level", "5th-Level", "6th-Level", "7th-Level", "8th-Level", "9th-Level"]
 
+class UserPreferences:
+
+    def __init__(self, unearthed_arcana=True, optional_spells=True, disabled_sourcebooks=[]):
+        self.unearthed_arcana = unearthed_arcana
+        self.optional_spells = optional_spells
+        self.disabled_sourcebooks = disabled_sourcebooks
+
+    def to_json(self):
+        return {
+            "unearthed_arcana": self.unearthed_arcana,
+            "optional_spells": self.optional_spells,
+            "disabled_sourcebooks": self.disabled_sourcebooks
+        }
+    
+    @classmethod
+    def from_json(cls, json_data):
+        return cls(**json_data)
+    
 
 # SCRAPING HELPERS
 
@@ -178,3 +197,41 @@ def find_closest_spell(spell_list, target, num_results = 1, similarity=0.6): # f
         return matches[0] if num_results==1 else matches
     except:
         return None
+    
+
+def get_sourcebooks(spell_list):
+
+    unique_sourcebooks = set()
+
+    for spell in spell_list:
+        spell_sources = re.split(r'\s*/\s*', spell.source) # avoid edge cases such as reprinted blade cantrips using ""
+        for source in spell_sources:
+            if "Unearthed Arcana" not in spell.source:
+                unique_sourcebooks.add(source.strip())
+
+    organized_sourcebooks = []
+    for source in unique_sourcebooks:
+        organized_sourcebooks.append(source)
+    organized_sourcebooks.sort()
+
+    return organized_sourcebooks
+
+
+def initialize_preferences():
+    try: 
+        with open('prefs.json', 'r') as file:
+            pref_json = json.load(file)
+        return UserPreferences.from_json(pref_json)
+    except FileNotFoundError:
+        print('File Not Found')
+        new_prefs = UserPreferences()
+        return new_prefs
+    except Exception as e:
+        return None
+    
+
+def save_preferences(preferences):
+
+    with open('prefs.json', 'w') as f:
+        json.dump(preferences.to_json(), f, indent=4)
+        f.close()

@@ -138,10 +138,79 @@ def display_help_menu():
     console.print(table)
 
 
-def display_options_menu(): #TODO
+def sourcebook_table(spells):
+
+    sourcebooks = helpers.get_sourcebooks(spells)
     
     console = Console()
-    console.print("[cyan2]STUB: Options menu[/]")
+    table = Table(border_style="green")
+
+    table.add_column("[orchid]Option[/]", style="bold magenta")
+    table.add_column("[orchid]Source[/]", style="bold cyan")
+    table.add_column("[orchid]Status[/]", style="sea_green2")
+
+    for i, x in enumerate(sourcebooks):
+        table.add_row(str(i), x, 
+                "[bold yellow]ENABLED[/]")
+
+    console.print(table)
+    console.print('q to quit')
+
+
+def option_table(prefs):
+    console = Console()
+    table = Table(border_style="green")
+
+    table.add_column("[orchid]Option[/]", style="bold cyan")
+    table.add_column("[orchid]Description[/]", style="sea_green2")
+    table.add_column("[orchid]Status[/]", style="bold")
+
+    if prefs.unearthed_arcana:
+        ua_status = 'ENABLED'
+    else:
+        ua_status = 'DISABLED'
+
+    if prefs.optional_spells:
+        optional_status = 'ENABLED'
+    else:
+        optional_status = 'DISABLED'   
+
+
+    table.add_row("Unearthed Arcana", 
+                "Include official WOTC playtest material.", 
+                f"[bold yellow]{ua_status}[/]")
+
+    table.add_row("Manage Sourcebooks", 
+                "...", 
+                "[bold yellow]...[/]")
+
+    table.add_row("Optional Spells", 
+                "Include TCoE's expanded spell lists in search results.", 
+                f"[bold yellow]{optional_status}[/]")
+
+    table.add_row("Delete library", 
+                "...", 
+                "[bold yellow]...[/]")
+    
+    console.print(table)
+
+
+def display_options_menu(spells, prefs): #TODO
+    
+ 
+    while(True):
+
+        option_table(prefs)
+        selected_option = Prompt.ask("[bold yellow]Please select an option[/]", choices=["1", "2", "3", "4", "q"])
+        if selected_option == '1':
+            prefs.unearthed_arcana = not prefs.unearthed_arcana
+        elif selected_option == '2':
+            sourcebook_table(spells)
+        elif selected_option == '2':
+            print('option 2')
+        elif selected_option == 'q':
+            helpers.save_preferences(prefs)
+            return
 
 
 def update_library(): # add missing spells to spells.txt, then returns re-initialized list of spells
@@ -193,6 +262,7 @@ def main():
 
 
     spells = sm.initialize_spells()
+    prefs =  helpers.initialize_preferences()
 
     if(spells == None):
         console.print("[orange_red1] Failed to initialize spells. Aborting program.[/]")
@@ -229,7 +299,7 @@ def main():
                 spells = new_spells
         # options menu
         elif user_input == '4':
-            display_options_menu()
+            display_options_menu(spells, prefs)
         # terminate program
         elif user_input == '5':
             console.print("[orange_red1]Exiting program.[/]")
