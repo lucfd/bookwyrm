@@ -138,7 +138,7 @@ def display_help_menu():
     console.print(table)
 
 
-def sourcebook_table(spells):
+def sourcebook_table(spells, prefs):
 
     sourcebooks = helpers.get_sourcebooks(spells)
     
@@ -150,8 +150,14 @@ def sourcebook_table(spells):
     table.add_column("[orchid]Status[/]", style="sea_green2")
 
     for i, x in enumerate(sourcebooks):
+
+        if x in prefs.disabled_sourcebooks:
+            source_status = "DISABLED"
+        else:
+            source_status = "ENABLED"
+
         table.add_row(str(i), x, 
-                "[bold yellow]ENABLED[/]")
+                f"[bold yellow]{source_status}[/]")
 
     console.print(table)
     console.print('q to quit')
@@ -169,24 +175,23 @@ def option_table(prefs):
         ua_status = 'ENABLED'
     else:
         ua_status = 'DISABLED'
+ 
+    table.add_row("Unearthed Arcana", 
+                "Include official WOTC playtest material.", 
+                f"[{'green' if prefs.unearthed_arcana else 'red'}]{ua_status}[/]")
 
     if prefs.optional_spells:
         optional_status = 'ENABLED'
     else:
-        optional_status = 'DISABLED'   
-
-
-    table.add_row("Unearthed Arcana", 
-                "Include official WOTC playtest material.", 
-                f"[bold yellow]{ua_status}[/]")
-
-    table.add_row("Manage Sourcebooks", 
-                "...", 
-                "[bold yellow]...[/]")
+        optional_status = 'DISABLED'  
 
     table.add_row("Optional Spells", 
                 "Include TCoE's expanded spell lists in search results.", 
-                f"[bold yellow]{optional_status}[/]")
+                    f"[{'green' if prefs.optional_spells else 'red'}]{optional_status}[/]")
+    
+    table.add_row("Manage Sourcebooks", 
+                "Choose which sources are included in search results.", 
+                "[bold yellow]...[/]")
 
     table.add_row("Delete library", 
                 "...", 
@@ -202,12 +207,12 @@ def display_options_menu(spells, prefs): #TODO
 
         option_table(prefs)
         selected_option = Prompt.ask("[bold yellow]Please select an option[/]", choices=["1", "2", "3", "4", "q"])
-        if selected_option == '1':
+        if selected_option == '1': # toggle UA
             prefs.unearthed_arcana = not prefs.unearthed_arcana
-        elif selected_option == '2':
-            sourcebook_table(spells)
-        elif selected_option == '2':
-            print('option 2')
+        elif selected_option == '2': # toggle optional spells
+            prefs.optional_spells = not prefs.optional_spells
+        elif selected_option == '3': 
+            sourcebook_table(spells, prefs)
         elif selected_option == 'q':
             helpers.save_preferences(prefs)
             return
@@ -289,7 +294,7 @@ def main():
         elif user_input == '2':
             display_help_menu()
             args = search.parse_query(Prompt.ask("[bold yellow]Enter your search query[/]"))
-            filtered_spells = search.filter_spells(spells, args)
+            filtered_spells = search.filter_spells(spells, args, options=prefs)
             display_spell_table(filtered_spells)
         # check for updates
         elif user_input == '3':
