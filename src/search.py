@@ -35,9 +35,14 @@ def filter_spells(list, search_filters, options=None): # generic filtering metho
     ritual_filter = search_filters.get('ritual')
 
     if options:
+        # unearthed arcana filtering
         if not options.unearthed_arcana:
             filtered_spells = filter_ua(filtered_spells)
+        # optional spell handling
         optional_spells = options.optional_spells
+        # exclude spells from disabled sources
+        if len(options.disabled_sourcebooks) > 0:
+            filtered_spells = filter_source(filtered_spells, options.disabled_sourcebooks)
     else:
         optional_spells = False
 
@@ -136,6 +141,13 @@ def filter_ua(list):
 def filter_hb(list):
 
     filtered_spells = [spell for spell in list if "(HB)" not in spell.name]
+
+    return filtered_spells
+
+
+def filter_source(spells, excluded_sources):
+
+    filtered_spells = [spell for spell in spells if not any(spell.source.startswith(excluded) for excluded in excluded_sources)] # startswith to avoid edge case of reprint sources
 
     return filtered_spells
 

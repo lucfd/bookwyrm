@@ -204,7 +204,7 @@ def get_sourcebooks(spell_list):
     unique_sourcebooks = set()
 
     for spell in spell_list:
-        spell_sources = re.split(r'\s*/\s*', spell.source) # avoid edge cases such as reprinted blade cantrips using ""
+        spell_sources = re.split(r'\s*/\s*', spell.source) # avoid edge cases such as reprinted blade cantrips "elemental evil/xanathar"
         for source in spell_sources:
             if "Unearthed Arcana" not in spell.source:
                 unique_sourcebooks.add(source.strip())

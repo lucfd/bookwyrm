@@ -138,9 +138,7 @@ def display_help_menu():
     console.print(table)
 
 
-def sourcebook_table(spells, prefs):
-
-    sourcebooks = helpers.get_sourcebooks(spells)
+def sourcebook_table(sourcebooks, prefs):
     
     console = Console()
     table = Table(border_style="green")
@@ -149,21 +147,39 @@ def sourcebook_table(spells, prefs):
     table.add_column("[orchid]Source[/]", style="bold cyan")
     table.add_column("[orchid]Status[/]", style="sea_green2")
 
-    for i, x in enumerate(sourcebooks):
+    for i, source in enumerate(sourcebooks):
 
-        if x in prefs.disabled_sourcebooks:
+        if source in prefs.disabled_sourcebooks:
             source_status = "DISABLED"
         else:
             source_status = "ENABLED"
 
-        table.add_row(str(i), x, 
-                f"[bold yellow]{source_status}[/]")
+        table.add_row(str(i+1), source, f"[{'green' if source_status == 'ENABLED' else 'red'}]{source_status}[/]")
 
     console.print(table)
-    console.print('q to quit')
+    console.print('[yellow]q to quit[/]')
 
 
-def option_table(prefs):
+def manage_sources(spells, prefs):
+
+    sourcebooks = helpers.get_sourcebooks(spells)
+
+    while(True):
+        sourcebook_table(sourcebooks, prefs)
+        user_input = input()
+
+        if user_input.lower() == 'q':
+            return
+        elif user_input.isnumeric() and int(user_input) <= len(sourcebooks):
+            print(sourcebooks[int(user_input)-1])
+
+            if sourcebooks[int(user_input)-1] in prefs.disabled_sourcebooks:
+                prefs.disabled_sourcebooks.remove(sourcebooks[int(user_input)-1])
+            else:
+                prefs.disabled_sourcebooks.append(sourcebooks[int(user_input)-1])
+        
+
+def option_table(spells, prefs):
     console = Console()
     table = Table(border_style="green")
 
@@ -189,9 +205,12 @@ def option_table(prefs):
                 "Include TCoE's expanded spell lists in search results.", 
                     f"[{'green' if prefs.optional_spells else 'red'}]{optional_status}[/]")
     
+    num_sourcebooks = len(helpers.get_sourcebooks(spells))
+    num_disabled_sourcebooks = len(prefs.disabled_sourcebooks)
+
     table.add_row("Manage Sourcebooks", 
                 "Choose which sources are included in search results.", 
-                "[bold yellow]...[/]")
+                f"[bold yellow]{str(num_sourcebooks-num_disabled_sourcebooks)}/{str(num_sourcebooks)}[/]")
 
     table.add_row("Delete library", 
                 "...", 
@@ -200,19 +219,22 @@ def option_table(prefs):
     console.print(table)
 
 
-def display_options_menu(spells, prefs): #TODO
+def display_options_menu(spells, prefs):
     
- 
     while(True):
 
-        option_table(prefs)
+        option_table(spells, prefs)
         selected_option = Prompt.ask("[bold yellow]Please select an option[/]", choices=["1", "2", "3", "4", "q"])
+
         if selected_option == '1': # toggle UA
             prefs.unearthed_arcana = not prefs.unearthed_arcana
+
         elif selected_option == '2': # toggle optional spells
             prefs.optional_spells = not prefs.optional_spells
+
         elif selected_option == '3': 
-            sourcebook_table(spells, prefs)
+            manage_sources(spells, prefs)
+
         elif selected_option == 'q':
             helpers.save_preferences(prefs)
             return
