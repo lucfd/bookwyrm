@@ -5,6 +5,7 @@ Bookwyrm is a companion tool for Dungeons & Dragons fifth edition that provides 
 
 Bookwyrm scrapes spell data from the web and stores it locally for fast and reliable lookups. It can be used through your CLI or as a Discord App/Bot.
 
+![gif](https://i.imgur.com/hIK6Arf.gif)
 ## Features
 - Quickly pull up a spell's details
 - Comprehensive search function that lets users filter spells with a wide range of criteria
