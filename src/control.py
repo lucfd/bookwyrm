@@ -9,7 +9,7 @@ from rich.panel import Panel
 from rich import box
 from rich.table import Table
 from rich.text import Text
-from rich.prompt import Prompt
+from rich.prompt import Prompt, Confirm
 
 def display_spell(spell):
         console = Console()
@@ -213,8 +213,8 @@ def option_table(spells, prefs):
                 f"[bold yellow]{str(num_sourcebooks-num_disabled_sourcebooks)}/{str(num_sourcebooks)}[/]")
 
     table.add_row("Delete library", 
-                "...", 
-                "[bold yellow]...[/]")
+                "Delete local files, resetting your library.", 
+                "")
     
     console.print(table)
 
@@ -234,6 +234,12 @@ def display_options_menu(spells, prefs):
 
         elif selected_option == '3': 
             manage_sources(spells, prefs)
+
+        elif selected_option == '4': 
+            confirm_deletion = Confirm.ask("[bold dark_orange3]Are you sure? This cannot be undone.[/]")
+            if confirm_deletion:
+                sm.delete_library()
+                sm.initialize_spells()
 
         elif selected_option == 'q':
             helpers.save_preferences(prefs)

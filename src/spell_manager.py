@@ -6,6 +6,7 @@ import json
 from src.spell import Spell
 from rich.progress import track
 from pathlib import Path
+import os
 
 def update_spells_txt(): # scrapes a list of all spell names, saves them to spells.txt
 
@@ -22,7 +23,7 @@ def scrape_spell_names(): # scrapes wikidot for a list of all spell names
     results = soup.find(id="page-content")
 
 
-    td_tags = soup.find_all('td')
+    td_tags = results.find_all('td')
 
     spell_list = []
     
@@ -139,3 +140,20 @@ def find_new_spells(return_old=False): # returns a list of scraped spell names n
         return [old_spells, new_spells]
     else:
         return new_spells
+    
+
+def delete_library(spell_names="spells.txt", spell_data="spells.json"):
+
+    if os.path.exists(spell_names):
+        try:
+            os.remove(spell_names)
+            print(f"Successfully deleted {spell_names}")
+        except:
+            print(f"Failed to delete {spell_names}")
+    
+    if os.path.exists(spell_data):
+        try:
+            os.remove(spell_data)
+            print(f"Successfully deleted {spell_data}")
+        except:
+            print(f"Failed to delete {spell_data}")  
