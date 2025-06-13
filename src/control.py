@@ -10,6 +10,31 @@ from rich import box
 from rich.table import Table
 from rich.text import Text
 from rich.prompt import Prompt, Confirm
+from rich.theme import Theme
+
+default_theme = Theme({
+    "big.header": "bold chartreuse1 on black",
+    
+    "highlight": "bold yellow", # used for prompts and in-text highlighting
+    "error": "orange_red1",
+    "success": "sea_green2",
+    "neutral": "cyan2",
+
+    # menu tables
+    "table.header": "orchid",
+    "table.border": "green",
+    "col1": "bold cyan",
+    "col2": "sea_green2",
+    "col3": "chartreuse1", # gold1
+
+
+    # spell table
+    "spell.table.header": "bold chartreuse1",
+    "row1": "white on black",
+    "row2":"white on grey11", 
+})
+
+selected_theme = default_theme
 
 def display_spell(spell):
         console = Console()
@@ -62,13 +87,13 @@ def display_spell(spell):
 
 def display_spell_table(spells):
         
-    console = Console()
+    console = Console(theme=selected_theme)
 
     if len(spells) == 0:
-        console.print(('[orange_red1]No spells found. Double-check your search criteria.[/]'))
+        console.print(('[error]No spells found. Double-check your search criteria.[/]'))
         return
 
-    spell_table = Table(title="", show_header=True, header_style="bold magenta", row_styles=["blue_violet on grey30","blue_violet on grey42"])
+    spell_table = Table(title="", show_header=True, header_style="spell.table.header", row_styles=["row1", "row2"])
     spell_table.add_column("Name", style="cyan", justify="center")
     spell_table.add_column("School", style="green", justify="center")
     spell_table.add_column("Level", style="cyan", justify="center")
@@ -83,10 +108,10 @@ def display_spell_table(spells):
 
 def display_menu():
 
-    console = Console()
-    menu_table = Table(show_header=True, header_style="bold magenta")
-    menu_table.add_column("Option", style="gold1", justify="center")
-    menu_table.add_column("Description", style="gold1", justify="left")
+    console = Console(theme=selected_theme)
+    menu_table = Table(show_header=True, header_style="table.header")
+    menu_table.add_column("Option", style="col3", justify="center")
+    menu_table.add_column("Description", style="col3", justify="left")
 
     menu_table.add_row("1", "Display spell info")
     menu_table.add_row("2", "Spell search")
@@ -103,49 +128,49 @@ def display_menu():
 
 def display_help_menu():
     
-    console = Console()
-    table = Table(border_style="green")
+    console = Console(theme=selected_theme)
+    table = Table(border_style="table.border")
 
-    table.add_column("[orchid]Argument[/]", style="bold cyan")
-    table.add_column("[orchid]Description[/]", style="sea_green2")
-    table.add_column("[orchid]Example[/]", style="bold")
+    table.add_column("[table.header]Argument[/]", style="col1")
+    table.add_column("[table.header]Description[/]", style="col2")
+    table.add_column("[table.header]Example[/]", style="bold")
 
     table.add_row("-c, --class", 
                 "Filters for spells that belong to specified classes.", 
-                "[bold yellow]-c Bard Wizard[/] filters for spells available to both Bards and Wizards.")
+                "[highlight]-c Bard Wizard[/] filters for spells available to both Bards and Wizards.")
 
 
     table.add_row("-s, --school", 
                 "Filter by spell school.", 
-                "[bold yellow]-s Abjuration[/] filters for Abjuration spells.")
+                "[highlight]-s Abjuration[/] filters for Abjuration spells.")
 
     table.add_row("-l, --level", 
                 "Filter by spell level.", 
-                "[bold yellow]-l 3 [/]filters for level 3 spells. [bold yellow]-l 0..5[/] includes spells from cantrips to level 5.")
+                "[highlight]-l 3 [/]filters for level 3 spells. [highlight]-l 0..5[/] includes spells from cantrips to level 5.")
 
     table.add_row("-cmp, --component", 
                 "Filter by spell components.", 
-                "[bold yellow]-cmp v s m [/]will filter for spells with all three components.")
+                "[highlight]-cmp v s m [/]will filter for spells with all three components.")
 
     table.add_row("-con, --concentration", 
                 "Filter spells with concentration.", 
-                "[bold yellow]-con[/] filters for concentration spells. [bold yellow]-con false[/] excludes them.")
+                "[highlight]-con[/] filters for concentration spells. [highlight]-con false[/] excludes them.")
     
     table.add_row("-r, --ritual", 
                 "Filter for spells with the ritual tag.", 
-                "[bold yellow]-r[/] filters for ritual spells. [bold yellow]-r false[/] excludes them.")
+                "[highlight]-r[/] filters for ritual spells. [highlight]-r false[/] excludes them.")
 
     console.print(table)
 
 
 def sourcebook_table(sourcebooks, prefs):
     
-    console = Console()
-    table = Table(border_style="green")
+    console = Console(theme=selected_theme)
+    table = Table(border_style="table.border")
 
-    table.add_column("[orchid]Option[/]", style="bold magenta")
-    table.add_column("[orchid]Source[/]", style="bold cyan")
-    table.add_column("[orchid]Status[/]", style="sea_green2")
+    table.add_column("[table.header]Option[/]", style="bold magenta")
+    table.add_column("[table.header]Source[/]", style="bold cyan")
+    table.add_column("[table.header]Status[/]", style="sea_green2")
 
     for i, source in enumerate(sourcebooks):
 
@@ -157,7 +182,7 @@ def sourcebook_table(sourcebooks, prefs):
         table.add_row(str(i+1), source, f"[{'green' if source_status == 'ENABLED' else 'red'}]{source_status}[/]")
 
     console.print(table)
-    console.print('[yellow]q to quit[/]')
+    console.print('[highlight]q to quit[/]')
 
 
 def manage_sources(spells, prefs):
@@ -180,12 +205,12 @@ def manage_sources(spells, prefs):
         
 
 def option_table(spells, prefs):
-    console = Console()
-    table = Table(border_style="green")
+    console = Console(theme=selected_theme)
+    table = Table(border_style="table.border")
 
-    table.add_column("[orchid]Option[/]", style="bold cyan")
-    table.add_column("[orchid]Description[/]", style="sea_green2")
-    table.add_column("[orchid]Status[/]", style="bold")
+    table.add_column("[table.header]Option[/]", style="col1")
+    table.add_column("[table.header]Description[/]", style="col2")
+    table.add_column("[table.header]Status[/]", style="bold")
 
     if prefs.unearthed_arcana:
         ua_status = 'ENABLED'
@@ -239,7 +264,6 @@ def display_options_menu(spells, prefs):
             confirm_deletion = Confirm.ask("[bold dark_orange3]Are you sure? This cannot be undone.[/]")
             if confirm_deletion:
                 sm.delete_library()
-                sm.initialize_spells()
 
         elif selected_option == 'q':
             helpers.save_preferences(prefs)
@@ -247,41 +271,42 @@ def display_options_menu(spells, prefs):
 
 
 def update_library(): # add missing spells to spells.txt, then returns re-initialized list of spells
-    console = Console()
-    console.print("[cyan2]Searching for new spells...[/]")
+    console = Console(theme=selected_theme)
+    console.print("[neutral]Searching for new spells...[/]")
 
     try:
         old_spells, new_spells = sm.find_new_spells(return_old=True)
     except FileNotFoundError:
-        console.print("[cyan2]Failed to read spells.txt[/]")
+        console.print("[error]Failed to read spells.txt[/]")
         return None
     except Exception:
-        console.print("[cyan2]Failed to check for updates.[/]")
+        console.print("[error]Failed to check for updates.[/]")
         return None
     
     if not new_spells:
-        console.print("[cyan2]No new spells found.[/]")
+        console.print("[neutral]No new spells found.[/]")
     else:
-        console.print(f"[cyan2]Found the following new spells: [/]\n[sky_blue1]"+", ".join(new_spells)+"[/]")
+        console.print(f"[neutral]Found the following new spells: [/]\n[sky_blue1]"+", ".join(new_spells)+"[/]")
         update_input = Prompt.ask("[bold yellow]Would you like to update your library?[/] [bold magenta][Y/N][/]")
 
         if update_input.lower() in ['y', 'yes']:
             try:
                 sm.save_spell_names(old_spells+new_spells)
                 updated_spells = sm.initialize_spells()
-                console.print('[sea_green2]Spell library updated successfully.[/]')
+                console.print('[success]Spell library updated successfully.[/]')
                 return updated_spells
             except:
-                console.print('[orange_red1]Failed to download new spells.[/]')
+                console.print('[error]Failed to download new spells.[/]')
         else:
-            console.print('[cyan2]Spell library will not be updated.[/]')
+            console.print('[neutral]Spell library will not be updated.[/]')
 
     return None
 
 
 def main():
 
-    console = Console()
+    global selected_theme
+    console = Console(theme=selected_theme)
 
     ascii_header = """
     BBBBB   OOOOO   OOOOO  K   K   W   W   Y   Y  RRRRR   M   M
@@ -291,21 +316,21 @@ def main():
     BBBBB   OOOOO   OOOOO  K   K   W   W     Y    R    R  M   M
     """
 
-    console.print(Panel(ascii_header, style="bold yellow on purple4", box=box.ROUNDED))
+    console.print(Panel(ascii_header, style="big.header", box=box.ROUNDED))
 
 
     spells = sm.initialize_spells()
     prefs =  helpers.initialize_preferences()
 
     if(spells == None):
-        console.print("[orange_red1] Failed to initialize spells. Aborting program.[/]")
+        console.print("[error]Failed to initialize spells. Aborting program.[/]")
         return
 
     # save spells to json if there is no backup
     file_path = Path('spells.json')
     if not file_path.is_file():
         sm.save_spells(helpers.jsonify_list(spells))
-        console.print("[bold chartreuse1]spells.json successfully created.[/]")
+        console.print("[success]spells.json successfully created.[/]")
 
     # main control loop
     while(True): 
@@ -317,7 +342,7 @@ def main():
             try:
                 display_spell(search.fetch_spell(spells, target_spell))
             except:
-                console.print("[orange_red1]Couldn\'t find that spell.[/]")
+                console.print("[error]Couldn\'t find that spell.[/]")
         # spell search
         elif user_input == '2':
             display_help_menu()
@@ -333,9 +358,11 @@ def main():
         # options menu
         elif user_input == '4':
             display_options_menu(spells, prefs)
+           # console = Console(theme=selected_theme)
+            
         # terminate program
         elif user_input == '5':
-            console.print("[orange_red1]Exiting program.[/]")
+            console.print("[success]Exiting program.[/]")
             return
 
 
