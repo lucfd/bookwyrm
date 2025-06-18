@@ -1,4 +1,4 @@
 beautifulsoup4==4.13.4
-discord.py==2.5.2
-Requests==2.32.3
+discord.py==2.5.2  # only required if you're running the bot
+requests~=2.32.4
 rich==14.0.0
