@@ -23,7 +23,7 @@ def parse_query(user_input):
     return vars(args)
 
 
-def filter_spells(list, search_filters): # generic filtering method
+def filter_spells(list, search_filters, options=None): # generic filtering method
 
     filtered_spells = list
 
@@ -34,9 +34,21 @@ def filter_spells(list, search_filters): # generic filtering method
     level_filter = search_filters.get('level')
     ritual_filter = search_filters.get('ritual')
 
+    if options:
+        # unearthed arcana filtering
+        if not options.unearthed_arcana:
+            filtered_spells = filter_ua(filtered_spells)
+        # optional spell handling
+        optional_spells = options.optional_spells
+        # exclude spells from disabled sources
+        if len(options.disabled_sourcebooks) > 0:
+            filtered_spells = filter_source(filtered_spells, options.disabled_sourcebooks)
+    else:
+        optional_spells = False
+
     if class_filters:
         for arg in class_filters:
-            filtered_spells = filter_by_class(filtered_spells, arg)
+            filtered_spells = filter_by_class(filtered_spells, arg, optional=optional_spells)
 
     if component_filters:
         for arg in component_filters:
@@ -57,9 +69,12 @@ def filter_spells(list, search_filters): # generic filtering method
     return filtered_spells
 
 
-def filter_by_class(list, filter_class): # returns list of spells belonging to a specified class
+def filter_by_class(spell_list, filter_class, optional=True): # returns list of spells belonging to a specified class
 
-    filtered_spells = [spell for spell in list if filter_class.lower() in [s.lower() for s in spell.spell_lists]] # TODO: handling for Tasha's optional spell lists
+    if optional == True:
+        filtered_spells = [spell for spell in spell_list if any(normalize_class_name(filter_class) == normalize_class_name(s) for s in spell.spell_lists)]
+    else:
+        filtered_spells = [spell for spell in spell_list if filter_class.lower() in [s.lower() for s in spell.spell_lists]]
     
     return filtered_spells
 
@@ -130,6 +145,13 @@ def filter_hb(list):
     return filtered_spells
 
 
+def filter_source(spells, excluded_sources):
+
+    filtered_spells = [spell for spell in spells if not any(spell.source.startswith(excluded) for excluded in excluded_sources)] # startswith to avoid edge case of reprint sources
+
+    return filtered_spells
+
+
 def parse_level_range(level_filter):
     
     levels = []
@@ -170,3 +192,8 @@ def fetch_spell(list, name): # returns Spell object that matches a provided spel
                 return spell
     except:
         return None
+    
+
+def normalize_class_name(name):
+    return re.sub(r"\s*\(.*?\)", "", name).strip().lower()
+
