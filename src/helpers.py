@@ -11,16 +11,18 @@ SPELL_LEVELS = ["Cantrip", "1st-Level", "2nd-Level", "3rd-Level", "4th-Level", "
 
 class UserPreferences:
 
-    def __init__(self, unearthed_arcana=True, optional_spells=True, disabled_sourcebooks=[]):
+    def __init__(self, unearthed_arcana=True, optional_spells=True, disabled_sourcebooks=[], theme="Lich"):
         self.unearthed_arcana = unearthed_arcana
         self.optional_spells = optional_spells
         self.disabled_sourcebooks = disabled_sourcebooks
+        self.theme = theme
 
     def to_json(self):
         return {
             "unearthed_arcana": self.unearthed_arcana,
             "optional_spells": self.optional_spells,
-            "disabled_sourcebooks": self.disabled_sourcebooks
+            "disabled_sourcebooks": self.disabled_sourcebooks,
+            "theme": self.theme
         }
     
     @classmethod
@@ -223,7 +225,6 @@ def initialize_preferences():
             pref_json = json.load(file)
         return UserPreferences.from_json(pref_json)
     except FileNotFoundError:
-        print('File Not Found')
         new_prefs = UserPreferences()
         return new_prefs
     except Exception as e:

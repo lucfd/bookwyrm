@@ -12,29 +12,112 @@ from rich.text import Text
 from rich.prompt import Prompt, Confirm
 from rich.theme import Theme
 
-default_theme = Theme({
-    "big.header": "bold chartreuse1 on black",
-    
-    "highlight": "bold yellow", # used for prompts and in-text highlighting
-    "error": "orange_red1",
-    "success": "sea_green2",
-    "neutral": "cyan2",
+global selected_theme
 
-    # menu tables
-    "table.header": "orchid",
-    "table.border": "green",
-    "col1": "bold cyan",
-    "col2": "sea_green2",
-    "col3": "chartreuse1", # gold1
+def load_theme(name=""):
+
+    # Lich theme (cmd friendly colours)
+    theme_lich = Theme({
+        "big.header": "bold chartreuse1 on black",
+        
+        "highlight": "bold yellow", # used for prompts and in-text highlighting
+        "error": "orange_red1",
+        "success": "sea_green2",
+        "neutral": "cyan2",
+
+        # menu tables
+        "menu.title": "yellow1",
+        "table.header": "yellow1",
+        "table.border": "green",
+        "col1": "bold cyan",
+        "col2": "sea_green2",
+        "col3": "chartreuse1",
 
 
-    # spell table
-    "spell.table.header": "bold chartreuse1",
-    "row1": "white on black",
-    "row2":"white on grey11", 
-})
+        # spell table
+        "spell.table.header": "bold turquoise2",
+        "row1": "white on black",
+        "row2":"chartreuse1 on grey11", 
+    })
 
-selected_theme = default_theme
+    theme_beholder = Theme({
+        "big.header": "bold gold1",
+        
+        "highlight": "bold yellow",
+        "error": "orange_red1",
+        "success": "sea_green2",
+        "neutral": "cyan2",
+
+        # menu tables
+        "menu.title": "chartreuse1",
+        "table.header": "orchid",
+        "table.border": "pale_turquoise1",
+        "col1": "bold cyan",
+        "col2": "sea_green2",
+        "col3": "gold1",
+
+
+        # spell table
+        "spell.table.header": "bold chartreuse1",
+        "row1": "hot_pink on black",
+        "row2":"cyan on grey11", 
+    })
+
+    theme_illithid = Theme({
+        "big.header": "bold yellow on purple4",
+        
+        "highlight": "bold medium_purple1",
+        "error": "orange_red1",
+        "success": "sea_green2",
+        "neutral": "cyan2",
+
+        # menu tables
+        "menu.title": "thistle1",
+        "table.header": "orchid",
+        "table.border": "medium_purple3",
+        "col1": "bold cyan",
+        "col2": "medium_purple3",
+        "col3": "blue3",
+
+
+        # spell table
+        "spell.table.header": "bold magenta",
+        "row1": "blue_violet on grey30",
+        "row2":"blue_violet on grey42",
+    })
+
+    theme_dragon = Theme({
+        "big.header": "bold yellow on dark_red",
+        
+        "highlight": "bold yellow",
+        "error": "orange_red1",
+        "success": "sea_green2",
+        "neutral": "cyan2",
+
+        # menu tables
+        "menu.title": "yellow1",
+        "table.header": "gold1",
+        "table.border": "dark_red",
+        "col1": "bold orange_red1",
+        "col2": "orange3",
+        "col3": "gold1",
+
+
+        # spell table
+        "spell.table.header": "bold gold1 on red3",
+        "row1": "gold1 on dark_red",
+        "row2":"bold gold1 on dark_orange3",
+    })
+
+    if name == "Beholder":
+        return theme_beholder
+    elif name == "Illithid":
+        return theme_illithid
+    elif name == "Dragon":
+        return theme_dragon
+    else:
+        return theme_lich # Lich is default theme
+
 
 def display_spell(spell):
         console = Console()
@@ -109,7 +192,7 @@ def display_spell_table(spells):
 def display_menu():
 
     console = Console(theme=selected_theme)
-    menu_table = Table(show_header=True, header_style="table.header")
+    menu_table = Table(show_header=True, header_style="menu.title", border_style="table.border")
     menu_table.add_column("Option", style="col3", justify="center")
     menu_table.add_column("Description", style="col3", justify="left")
 
@@ -117,11 +200,11 @@ def display_menu():
     menu_table.add_row("2", "Spell search")
     menu_table.add_row("3", "Check for compendium updates")
     menu_table.add_row("4", "Options")
-    menu_table.add_row("5", "Quit")
+    menu_table.add_row("q", "Quit")
 
     console.print(menu_table)
 
-    selected_option = Prompt.ask("[bold yellow]Please select an option[/]", choices=["1", "2", "3", "4", "5"])
+    selected_option = Prompt.ask("[bold yellow]Please select an option[/]", choices=["1", "2", "3", "4", "q"])
 
     return selected_option
 
@@ -168,9 +251,9 @@ def sourcebook_table(sourcebooks, prefs):
     console = Console(theme=selected_theme)
     table = Table(border_style="table.border")
 
-    table.add_column("[table.header]Option[/]", style="bold magenta")
-    table.add_column("[table.header]Source[/]", style="bold cyan")
-    table.add_column("[table.header]Status[/]", style="sea_green2")
+    table.add_column("[table.header]Option[/]", style="col1")
+    table.add_column("[table.header]Source[/]", style="col2")
+    table.add_column("[table.header]Status[/]", style="col3")
 
     for i, source in enumerate(sourcebooks):
 
@@ -202,7 +285,37 @@ def manage_sources(spells, prefs):
                 prefs.disabled_sourcebooks.remove(sourcebooks[int(user_input)-1])
             else:
                 prefs.disabled_sourcebooks.append(sourcebooks[int(user_input)-1])
-        
+
+
+def theme_menu(prefs):
+    global selected_theme
+    console = Console(theme=selected_theme)
+    table = Table(border_style="table.border")
+
+    table.add_column("[table.header]Option[/]", style="col1", justify="center")
+    table.add_column("[table.header]Theme[/]", style="col2")
+    table.add_column("[table.header]Description[/]", style="col3")
+
+    style_list = []
+    style_list.append(("Lich", "Black and green. CMD-friendly!"))
+    style_list.append(("Dragon", "Red, orange and gold."))
+    style_list.append(("Illithid", "Blue, pink and purple."))
+    style_list.append(("Beholder", "Lots of bright neon colours!"))
+
+    for i, style in enumerate(style_list):
+        table.add_row(str(i+1), style[0], style[1])
+
+    console.print(table)
+    console.print(f"Your current theme is [highlight]{prefs.theme}[/]")
+
+    user_input = Prompt.ask("[bold yellow]Please select an option[/]", choices=[str(num) for num in range(1, i+2)] + ["q"])
+
+    if user_input == 'q':
+        return
+    else:
+        prefs.theme = style_list[int(user_input)-1][0]
+        selected_theme = load_theme(prefs.theme)
+
 
 def option_table(spells, prefs):
     console = Console(theme=selected_theme)
@@ -226,16 +339,20 @@ def option_table(spells, prefs):
     else:
         optional_status = 'DISABLED'  
 
-    table.add_row("Optional Spells", 
+    table.add_row("Optional spells", 
                 "Include TCoE's expanded spell lists in search results.", 
                     f"[{'green' if prefs.optional_spells else 'red'}]{optional_status}[/]")
     
     num_sourcebooks = len(helpers.get_sourcebooks(spells))
     num_disabled_sourcebooks = len(prefs.disabled_sourcebooks)
 
-    table.add_row("Manage Sourcebooks", 
+    table.add_row("Manage sourcebooks", 
                 "Choose which sources are included in search results.", 
                 f"[bold yellow]{str(num_sourcebooks-num_disabled_sourcebooks)}/{str(num_sourcebooks)}[/]")
+    
+    table.add_row("Modify theme", 
+                "Change the colours of the user interface.", 
+                "")
 
     table.add_row("Delete library", 
                 "Delete local files, resetting your library.", 
@@ -261,6 +378,9 @@ def display_options_menu(spells, prefs):
             manage_sources(spells, prefs)
 
         elif selected_option == '4': 
+            theme_menu(prefs)
+
+        elif selected_option == '5': 
             confirm_deletion = Confirm.ask("[bold dark_orange3]Are you sure? This cannot be undone.[/]")
             if confirm_deletion:
                 sm.delete_library()
@@ -306,6 +426,8 @@ def update_library(): # add missing spells to spells.txt, then returns re-initia
 def main():
 
     global selected_theme
+    prefs =  helpers.initialize_preferences()
+    selected_theme = load_theme(prefs.theme)
     console = Console(theme=selected_theme)
 
     ascii_header = """
@@ -320,7 +442,6 @@ def main():
 
 
     spells = sm.initialize_spells()
-    prefs =  helpers.initialize_preferences()
 
     if(spells == None):
         console.print("[error]Failed to initialize spells. Aborting program.[/]")
@@ -361,7 +482,7 @@ def main():
            # console = Console(theme=selected_theme)
             
         # terminate program
-        elif user_input == '5':
+        elif user_input == 'q':
             console.print("[success]Exiting program.[/]")
             return
 
