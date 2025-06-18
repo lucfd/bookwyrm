@@ -14,7 +14,11 @@ Bookwyrm scrapes spell data from the web and stores it locally for fast and reli
 - Creates a local spell library
   - Saved in a JSON file - super easy to modify values or add your own homebrew
   - No more reliance on websites, your library is *yours forever*
-- Easily check for + download spell updates
+- Easily check for + download spell updates from within the program
+
+  
+![gif](https://i.imgur.com/0uTh4Fx.gif)
+
 
 ## Setting up Bookwyrm
 
